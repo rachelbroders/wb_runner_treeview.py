@@ -769,22 +769,23 @@ class WbRunner(tk.Frame):
     #                  Calling basics                       #
     #########################################################
         self.toolbox_list = self.get_toolboxes()
-        print("self.toolbox_list: " + str(self.toolbox_list))
+        # print("self.toolbox_list: " + str(self.toolbox_list))
         self.sort_toolboxes()
-        print("self.upper_toolboxes: " + str(self.upper_toolboxes))
-        print("self.lower_toolboxes: " + str(self.lower_toolboxes))
+        # print("self.upper_toolboxes: " + str(self.upper_toolboxes))
+        # print("self.lower_toolboxes: " + str(self.lower_toolboxes))
         self.tools_and_toolboxes = wbt.toolbox('')
         # print("self.tools_and_toolboxes: " + str(self.tools_and_toolboxes))
         self.sort_tools_by_toolbox()
-        print("self.sorted_tools: " + str(self.sorted_tools))
-
+        # print("self.sorted_tools: " + str(self.sorted_tools))
+        
+        (self.toolslist, selected_item) = self.get_tools_list()               #not sure why this is needed????
+        self.tool_name = self.toolslist[selected_item]
     #########################################################
     #                  Toolboxes Frame                      #
     #########################################################
         toplevel_frame = ttk.Frame(self, padding='0.1i')
-        (self.toolslist, selected_item) = self.get_tools_list()               #self.tool_name becomes 'Absolute value' here
         self.tools_frame = ttk.LabelFrame(toplevel_frame, text="{} Available Tools".format(
-            len(self.toolslist)), padding='0.1i')
+            len(self.upper_toolboxes)), padding='0.1i')
         # self.toolnames = tk.StringVar(value=self.toolslist)
         
         self.tool_tree = ttk.Treeview(self.tools_frame, height = 22)
@@ -795,17 +796,15 @@ class WbRunner(tk.Frame):
                 for tool in self.sorted_tools[index]:
                     self.tool_tree.insert(toolbox, 'end', text = tool, tags = 'tool')        
             else:
-                print("\t" + toolbox[:toolbox.find('/')])
-                print("\t" + toolbox[toolbox.find('/') + 1:])
+                # print("\t" + toolbox[:toolbox.find('/')])
+                # print("\t" + toolbox[toolbox.find('/') + 1:])
                 if self.tool_tree.exists(toolbox[:toolbox.find('/')]) == False:
                     self.tool_tree.insert('', 'end', iid = toolbox[:toolbox.find('/')], text = toolbox[:toolbox.find('/')])   
                 self.tool_tree.insert(toolbox[:toolbox.find('/')], 'end', iid = toolbox[toolbox.find('/') + 1:], text = toolbox[toolbox.find('/') + 1:])
                 for tool in self.sorted_tools[index]:
                     self.tool_tree.insert(toolbox[toolbox.find('/') + 1:], 'end', text = tool, tags = 'tool')
             index = index + 1 
-        self.tool_tree.tag_configure('tool', background='purple', foreground='orange', font = '20')
-        # self.tool_tree.tag_bind('<Button-1>', self.update_tool_help)
-        # self.tool_tree.focus(itemClicked)
+
         self.tool_tree.tag_bind('tool', "<<TreeviewSelect>>", self.update_tool_help)
         self.tool_tree.grid(row=0, column=0, sticky=tk.NSEW)
         self.tool_tree.columnconfigure(0, weight=10)
@@ -1231,7 +1230,7 @@ class WbRunner(tk.Frame):
     # Added 'sort_tools_by_toolbox' -RACHEL
     def sort_tools_by_toolbox(self): 
         print("sort_tools_by_toolbox")
-        print("self.lower_toolboxes: " + str(self.lower_toolboxes))
+        # print("self.lower_toolboxes: " + str(self.lower_toolboxes))
         self.sorted_tools = [[] for i in range(len(self.lower_toolboxes))]
         count = 1
 
@@ -1246,7 +1245,7 @@ class WbRunner(tk.Frame):
                 for toolbox in self.lower_toolboxes:
                     if toolbox == itemToolboxStripped:
                         self.sorted_tools[index].append(tool)
-                        print("***" + str(count) + ") " + tool + " added to " + toolbox)
+                        # print("***" + str(count) + ") " + tool + " added to " + toolbox)
                         break
                     index = index + 1
                 count = count + 1
