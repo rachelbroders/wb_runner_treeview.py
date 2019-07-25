@@ -797,10 +797,8 @@ class WbRunner(tk.Frame):
             else:
                 print("\t" + toolbox[:toolbox.find('/')])
                 print("\t" + toolbox[toolbox.find('/') + 1:])
-                if self.tool_tree.exists(toolbox[:toolbox.find('/')]):
-                    print("here")
-                else:
-                    self.tool_tree.insert('', 'end', iid = toolbox[:toolbox.find('/')], text = toolbox[:toolbox.find('/')])
+                if self.tool_tree.exists(toolbox[:toolbox.find('/')]) == False:
+                    self.tool_tree.insert('', 'end', iid = toolbox[:toolbox.find('/')], text = toolbox[:toolbox.find('/')])   
                 self.tool_tree.insert(toolbox[:toolbox.find('/')], 'end', iid = toolbox[toolbox.find('/') + 1:], text = toolbox[toolbox.find('/') + 1:])
                 for tool in self.sorted_tools[index]:
                     self.tool_tree.insert(toolbox[toolbox.find('/') + 1:], 'end', text = tool, tags = 'tool')
@@ -808,7 +806,7 @@ class WbRunner(tk.Frame):
         self.tool_tree.tag_configure('tool', background='purple', foreground='orange', font = '20')
         # self.tool_tree.tag_bind('<Button-1>', self.update_tool_help)
         # self.tool_tree.focus(itemClicked)
-        self.tool_tree.bind('tool', "<<TreeviewSelect>>", self.update_tool_help)
+        self.tool_tree.tag_bind('tool', "<<TreeviewSelect>>", self.update_tool_help)
         self.tool_tree.grid(row=0, column=0, sticky=tk.NSEW)
         self.tool_tree.columnconfigure(0, weight=10)
         self.tool_tree.rowconfigure(0, weight=1)
@@ -1050,59 +1048,57 @@ class WbRunner(tk.Frame):
     def update_tool_help(self, event):
         print("update_tool_help")
 
-        curItem = tree.focus()
-        print("*********************tree.item(curItem): " + tree.item(curItem))
+        curItem = self.tool_tree.focus()
+        temp = self.tool_tree.item(curItem)
+        self.tool_name = temp.get('text')
+        # print("*********************temp: " + str(temp))
+        print("*********************self.tool_name: " + self.tool_name)
 
-        # selection = self.tool_tree.selection()
-        # print("selection: " + str(selection))
-        # self.tool_name = self.tool_tree.focus(selection[0])
-        # print("self.tool_name: " + str(self.tool_name))
+        self.out_text.delete('1.0', tk.END)
+        for widget in self.tool_args_frame.winfo_children():
+            widget.destroy()
 
-        # self.out_text.delete('1.0', tk.END)
-        # for widget in self.tool_args_frame.winfo_children():
-        #     widget.destroy()
+        k = wbt.tool_help(self.tool_name)
+        self.print_to_output(k)
 
-        # k = wbt.tool_help(self.tool_name)
-        # self.print_to_output(k)
+        j = json.loads(wbt.tool_parameters(self.tool_name))
+        param_num = 0
+        for p in j['parameters']:
+            json_str = json.dumps(
+                p, sort_keys=True, indent=2, separators=(',', ': '))
+            pt = p['parameter_type']
+            if 'ExistingFileOrFloat' in pt:
+                ff = FileOrFloat(json_str, self, self.tool_args_frame)
+                ff.grid(row=param_num, column=0, sticky=tk.NSEW)
+                param_num = param_num + 1
+            elif ('ExistingFile' in pt or 'NewFile' in pt or 'Directory' in pt):
+                fs = FileSelector(json_str, self, self.tool_args_frame)
+                fs.grid(row=param_num, column=0, sticky=tk.NSEW)
+                param_num = param_num + 1
+            elif 'FileList' in pt:
+                b = MultifileSelector(json_str, self, self.tool_args_frame)
+                b.grid(row=param_num, column=0, sticky=tk.W)
+                param_num = param_num + 1
+            elif 'Boolean' in pt:
+                b = BooleanInput(json_str, self.tool_args_frame)
+                b.grid(row=param_num, column=0, sticky=tk.W)
+                param_num = param_num + 1
+            elif 'OptionList' in pt:
+                b = OptionsInput(json_str, self.tool_args_frame)
+                b.grid(row=param_num, column=0, sticky=tk.W)
+                param_num = param_num + 1
+            elif ('Float' in pt or 'Integer' in pt or
+                  'String' in pt or 'StringOrNumber' in pt or
+                  'StringList' in pt or 'VectorAttributeField' in pt):
+                b = DataInput(json_str, self.tool_args_frame)
+                b.grid(row=param_num, column=0, sticky=tk.NSEW)
+                param_num = param_num + 1
+            else:
+                messagebox.showinfo(
+                    "Error", "Unsupported parameter type: {}.".format(pt))
 
-        # j = json.loads(wbt.tool_parameters(self.tool_name))
-        # param_num = 0
-        # for p in j['parameters']:
-        #     json_str = json.dumps(
-        #         p, sort_keys=True, indent=2, separators=(',', ': '))
-        #     pt = p['parameter_type']
-        #     if 'ExistingFileOrFloat' in pt:
-        #         ff = FileOrFloat(json_str, self, self.tool_args_frame)
-        #         ff.grid(row=param_num, column=0, sticky=tk.NSEW)
-        #         param_num = param_num + 1
-        #     elif ('ExistingFile' in pt or 'NewFile' in pt or 'Directory' in pt):
-        #         fs = FileSelector(json_str, self, self.tool_args_frame)
-        #         fs.grid(row=param_num, column=0, sticky=tk.NSEW)
-        #         param_num = param_num + 1
-        #     elif 'FileList' in pt:
-        #         b = MultifileSelector(json_str, self, self.tool_args_frame)
-        #         b.grid(row=param_num, column=0, sticky=tk.W)
-        #         param_num = param_num + 1
-        #     elif 'Boolean' in pt:
-        #         b = BooleanInput(json_str, self.tool_args_frame)
-        #         b.grid(row=param_num, column=0, sticky=tk.W)
-        #         param_num = param_num + 1
-        #     elif 'OptionList' in pt:
-        #         b = OptionsInput(json_str, self.tool_args_frame)
-        #         b.grid(row=param_num, column=0, sticky=tk.W)
-        #         param_num = param_num + 1
-        #     elif ('Float' in pt or 'Integer' in pt or
-        #           'String' in pt or 'StringOrNumber' in pt or
-        #           'StringList' in pt or 'VectorAttributeField' in pt):
-        #         b = DataInput(json_str, self.tool_args_frame)
-        #         b.grid(row=param_num, column=0, sticky=tk.NSEW)
-        #         param_num = param_num + 1
-        #     else:
-        #         messagebox.showinfo(
-        #             "Error", "Unsupported parameter type: {}.".format(pt))
-
-        # self.update_args_box()
-        # self.out_text.see("%d.%d" % (1, 0))
+        self.update_args_box()
+        self.out_text.see("%d.%d" % (1, 0))
 
     def update_args_box(self):
         print("update_args_box")
@@ -1246,10 +1242,8 @@ class WbRunner(tk.Frame):
                 itemToolbox = toolAndToolbox.strip().split(':')[1].strip()
                 itemToolbox = to_camelcase(itemToolbox)
                 itemToolboxStripped = itemToolbox.rstrip()
-                print("itemToolboxStripped: " + itemToolboxStripped)
                 index = 0
                 for toolbox in self.lower_toolboxes:
-                    print("\ttoolbox: " + toolbox)
                     if toolbox == itemToolboxStripped:
                         self.sorted_tools[index].append(tool)
                         print("***" + str(count) + ") " + tool + " added to " + toolbox)
