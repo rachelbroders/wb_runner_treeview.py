@@ -794,7 +794,7 @@ class WbRunner(tk.Frame):
             if toolbox.find('/') == (-1):
                 self.tool_tree.insert('', 'end', iid = toolbox, text = toolbox)
                 for tool in self.sorted_tools[index]:
-                    self.tool_tree.insert(toolbox, 'end', text = tool, tags = 'tool')        
+                    self.tool_tree.insert(toolbox, 'end', iid = tool, text = tool, tags = 'tool')        
             else:
                 # print("\t" + toolbox[:toolbox.find('/')])
                 # print("\t" + toolbox[toolbox.find('/') + 1:])
@@ -802,7 +802,7 @@ class WbRunner(tk.Frame):
                     self.tool_tree.insert('', 'end', iid = toolbox[:toolbox.find('/')], text = toolbox[:toolbox.find('/')])   
                 self.tool_tree.insert(toolbox[:toolbox.find('/')], 'end', iid = toolbox[toolbox.find('/') + 1:], text = toolbox[toolbox.find('/') + 1:])
                 for tool in self.sorted_tools[index]:
-                    self.tool_tree.insert(toolbox[toolbox.find('/') + 1:], 'end', text = tool, tags = 'tool')
+                    self.tool_tree.insert(toolbox[toolbox.find('/') + 1:], 'end', iid = tool, text = tool, tags = 'tool')
             index = index + 1 
 
         self.tool_tree.tag_bind('tool', "<<TreeviewSelect>>", self.update_tool_help)
@@ -919,15 +919,14 @@ class WbRunner(tk.Frame):
     #########################################################
     #                  Tool Selection                       #
     #########################################################        
-        # print("891")
-        # # Select the appropriate tool, if specified, otherwise the first tool
-        # print("display tool selection, self.tool_index: " + str(selected_item))
-        # self.tool_tree.select_set(selected_item)
-        # print("895")                             
-        # self.tool_tree.event_generate("<<ListboxSelect>>")
-        # print("897")
-        # self.tool_tree.see(selected_item)
-        # print("899")
+        print("891")
+        # Select the appropriate tool, if specified, otherwise the first tool
+        print("display tool selection, self.tool_index: " + str(selected_item))
+        self.tool_tree.focus(self.tool_name)
+        self.tool_tree.selection_set(self.tool_name)
+        print("895")                             
+        self.tool_tree.event_generate("<<TreeviewSelect>>")
+        print("897")
         
     #########################################################
     #                       Menus                           #
@@ -964,7 +963,6 @@ class WbRunner(tk.Frame):
 
         self.master.config(menu=menubar)
         print("928")
-        # self.get_toolboxes()
 
     def help(self):
         print("help")
