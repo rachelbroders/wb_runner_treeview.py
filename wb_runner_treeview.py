@@ -851,16 +851,18 @@ class WbRunner(tk.Frame):
         self.search_label = ttk.Label(self.search_frame, text = "Search: ")
         self.search_label.grid(row = 0, column = 0, sticky=tk.NW)
         
-        self.search_bar = ttk.Entry(self.search_frame, width = 30)
+        self.search_text = tk.StringVar()
+        self.search_bar = ttk.Entry(self.search_frame, width = 30, textvariable = self.search_text)
         self.search_bar.grid(row = 0, column = 1, sticky=tk.NE)
         
-        self.search_results_listbox = tk.Listbox(self.search_frame, height=8, listvariable = self.upper_toolboxes) #add listvariable
+        self.search_results_listbox = tk.Listbox(self.search_frame, height=8) #add listvariable
         self.search_results_listbox.grid(row = 1, column = 0, columnspan = 2, sticky=tk.NSEW, pady = 5)
 
         self.search_scroll = ttk.Scrollbar(self.search_frame, orient=tk.VERTICAL, command=self.search_results_listbox.yview)
         self.search_scroll.grid(row=1, column=2, sticky=(tk.N, tk.S))
         self.search_results_listbox['yscrollcommand'] = self.search_scroll.set
-
+        
+        self.search_bar.bind('<Return>', self.update_search)
         self.search_frame.grid(row = 1, column = 0, sticky=tk.NSEW)
         self.search_frame.columnconfigure(0, weight=1)
         self.search_frame.columnconfigure(1, weight=10)
@@ -1082,6 +1084,29 @@ class WbRunner(tk.Frame):
     def view_code(self):
         print("view_code")
         webbrowser.open_new_tab(wbt.view_code(self.tool_name).strip())
+
+    def update_search(self, event):
+        print("+++++++++++++++++++++++++update_search")
+        self.search_string = self.search_text.get()
+        # self.search_string = str(self.search_text)
+        # print("-------------------------self.search_string: " + self.search_string)
+        self.search_results_listbox.delete(0, 'end')
+        self.get_descriptions()
+        num_results = 0
+        for tool in self.toolslist:
+            if tool.find(self.search_string) != (-1):
+                num_results = num_results + 1
+                self.search_results_listbox.insert(num_results, tool)
+
+    def get_descriptions(self):
+        tools = wbt.list_tools()
+        print("tools: " + str(tools))
+        descriptionList = []
+        for t in tools.split("\n"):
+            print("\t" + str(t))
+            # description = t.strip().split(":")[1].strip().rstrip('.')
+            # descriptionList.append(description)
+        # print("str(descriptionList): " + str(descriptionList))
 
     def update_toolbox_icon(self, event):
         print("update_toolbox_icon")
