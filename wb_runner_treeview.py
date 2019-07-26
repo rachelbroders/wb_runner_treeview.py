@@ -767,6 +767,27 @@ class WbRunner(tk.Frame):
     def create_widgets(self):
 
     #########################################################
+    #              Overall/Top level Frame                  #
+    #########################################################
+        toplevel_frame = ttk.Frame(self, padding='0.1i')
+        overall_frame = ttk.Frame(toplevel_frame, padding='0.1i')
+
+        overall_frame.grid(row=0, rowspan = 2, column=1, sticky=tk.NSEW)
+        toplevel_frame.grid(row=0, column=0, sticky=tk.NSEW)
+
+        # overall_frame.columnconfigure(0, weight=1)
+        # toplevel_frame.columnconfigure(0, weight=1)
+
+        # toplevel_frame.rowconfigure(0, weight = 10)
+        # toplevel_frame.rowconfigure(1, weight = 4)
+
+        # toplevel_frame.columnconfigure(1, weight=4)
+        # self.pack(fill=tk.BOTH, expand=1)
+        # toplevel_frame.columnconfigure(0, weight=1)
+        # toplevel_frame.rowconfigure(0, weight=1)
+      
+        
+    #########################################################
     #                  Calling basics                       #
     #########################################################
         self.toolbox_list = self.get_toolboxes()
@@ -788,7 +809,6 @@ class WbRunner(tk.Frame):
     #########################################################
     #                  Toolboxes Frame                      #
     #########################################################
-        toplevel_frame = ttk.Frame(self, padding='0.1i')
         self.tools_frame = ttk.LabelFrame(toplevel_frame, text="{} Available Tools".format(
             len(self.toolslist)), padding='0.1i')
         
@@ -820,16 +840,39 @@ class WbRunner(tk.Frame):
         self.tools_frame.grid(row=0, column=0, sticky=tk.NSEW)
         self.tools_frame.columnconfigure(0, weight=10)
         self.tools_frame.columnconfigure(1, weight=1)
-        self.tools_frame.rowconfigure(0, weight=1)
-
-        overall_frame = ttk.Frame(toplevel_frame, padding='0.1i')
+        self.tools_frame.rowconfigure(0, weight=10)
         print("799")
+
+    #########################################################
+    #                     Search Bar                        #
+    #########################################################
+        self.search_frame = ttk.LabelFrame(toplevel_frame, padding='0.1i')
+
+        self.search_label = ttk.Label(self.search_frame, text = "Search: ")
+        self.search_label.grid(row = 0, column = 0, sticky=tk.NW)
+        
+        self.search_bar = ttk.Entry(self.search_frame, width = 30)
+        self.search_bar.grid(row = 0, column = 1, sticky=tk.NE)
+        
+        self.search_results_listbox = tk.Listbox(self.search_frame, height=10, listvariable = self.upper_toolboxes) #add listvariable
+        self.search_results_listbox.grid(row = 1, column = 0, columnspan = 2, sticky=tk.NSEW, pady = 5)
+
+        self.search_scroll = ttk.Scrollbar(self.search_frame, orient=tk.VERTICAL, command=self.search_results_listbox.yview)
+        self.search_scroll.grid(row=1, column=2, sticky=(tk.N, tk.S))
+        self.search_results_listbox['yscrollcommand'] = self.search_scroll.set
+
+        self.search_frame.grid(row = 1, column = 0, sticky=tk.NSEW)
+        self.search_frame.columnconfigure(0, weight=1)
+        self.search_frame.columnconfigure(1, weight=10)
+        self.search_frame.columnconfigure(1, weight=1)
+        self.search_frame.rowconfigure(0, weight=1)
+        self.search_frame.rowconfigure(1, weight = 10)
 
     #########################################################
     #                 Current Tool Frame                    #
     #########################################################
 
-        current_tool_frame = ttk.Frame(overall_frame, padding='0.1i')
+        current_tool_frame = ttk.Frame(overall_frame, padding='0.2i')
         self.current_tool_lbl = ttk.Label(current_tool_frame, text="Current Tool: {}".format(
             self.tool_name), justify=tk.LEFT)  # , font=("Helvetica", 12, "bold")
         self.current_tool_lbl.grid(row=0, column=0, sticky=tk.W)
@@ -844,8 +887,7 @@ class WbRunner(tk.Frame):
     #                     Args Frame                        #
     #########################################################
         print("811")
-        self.tool_args_frame = ttk.Frame(overall_frame, padding='0.0i')
-        self.tool_args_frame = ttk.Frame(overall_frame, padding='0.0i')
+        self.tool_args_frame = ttk.Frame(overall_frame, padding='0.02i')
         self.tool_args_frame.grid(row=2, column=0, sticky=tk.NSEW)
         self.tool_args_frame.columnconfigure(0, weight=1)
         # sb = ttk.Scrollbar(tool_args_frame, orient=tk.VERTICAL)                 #effort to make scrollbar over arguments
@@ -857,7 +899,7 @@ class WbRunner(tk.Frame):
     #                   Buttons Frame                       #
     #########################################################
         print("841")
-        buttonsFrame = ttk.Frame(overall_frame, padding='0.1i')
+        buttonsFrame = ttk.Frame(overall_frame, padding='0.2i')
         self.run_button = ttk.Button(
             buttonsFrame, text="Run", width=8, command=self.run_tool)
         # self.run_button.pack(pady=10, padx=10)
@@ -871,12 +913,12 @@ class WbRunner(tk.Frame):
     #                  Output Frame                      #
     #########################################################                
         print("851")
-        output_frame = ttk.Frame(overall_frame, padding='0.1i')
+        output_frame = ttk.Frame(overall_frame, padding='0.2i')
         outlabel = ttk.Label(output_frame, text="Output:", justify=tk.LEFT)
         outlabel.grid(row=0, column=0, sticky=tk.NW)
         k = wbt.tool_help(self.tool_name)
         self.out_text = ScrolledText(
-            output_frame, width=63, height=10, wrap=tk.NONE, padx=7, pady=7)
+            output_frame, width=63, height=15, wrap=tk.NONE, padx=7, pady=7)
         self.out_text.insert(tk.END, k)
         self.out_text.grid(row=1, column=0, sticky=tk.NSEW)
         self.out_text.columnconfigure(0, weight=1)
@@ -898,7 +940,7 @@ class WbRunner(tk.Frame):
     #########################################################
     #                  Progress Frame                       #
     #########################################################        
-        progress_frame = ttk.Frame(overall_frame, padding='0.1i')
+        progress_frame = ttk.Frame(overall_frame, padding='0.2i')
         self.progress_label = ttk.Label(
             progress_frame, text="Progress:", justify=tk.LEFT)
         self.progress_label.grid(row=0, column=0, sticky=tk.E, padx=5)
@@ -908,20 +950,6 @@ class WbRunner(tk.Frame):
         self.progress.grid(row=0, column=1, sticky=tk.E)
         progress_frame.grid(row=5, column=0, sticky=tk.E)
         print("880")
-
-    #########################################################
-    #              Overall/Top level Frame                  #
-    #########################################################
-        overall_frame.grid(row=0, column=1, sticky=tk.NSEW)
-
-        overall_frame.columnconfigure(0, weight=1)
-        toplevel_frame.columnconfigure(0, weight=1)
-        toplevel_frame.columnconfigure(1, weight=4)
-        # self.pack(fill=tk.BOTH, expand=1)
-        # toplevel_frame.columnconfigure(0, weight=1)
-        # toplevel_frame.rowconfigure(0, weight=1)
-
-        toplevel_frame.grid(row=0, column=0, sticky=tk.NSEW)
         
     #########################################################
     #                  Tool Selection                       #
