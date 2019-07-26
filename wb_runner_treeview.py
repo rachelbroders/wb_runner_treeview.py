@@ -791,7 +791,6 @@ class WbRunner(tk.Frame):
         toplevel_frame = ttk.Frame(self, padding='0.1i')
         self.tools_frame = ttk.LabelFrame(toplevel_frame, text="{} Available Tools".format(
             len(self.toolslist)), padding='0.1i')
-        # self.toolnames = tk.StringVar(value=self.toolslist)
         
         self.tool_tree = ttk.Treeview(self.tools_frame, height = 22)
         index = 0
@@ -807,8 +806,6 @@ class WbRunner(tk.Frame):
                     self.tool_tree.insert(toolbox, 'end', iid = tool, text = tool, tags = 'tool', image = self.tool_icon) 
             index = index + 1 
 
-        focus = self.tool_tree.grab_current()
-        print(focus)
 
         self.tool_tree.tag_bind('tool', "<<TreeviewSelect>>", self.update_tool_help)
         self.tool_tree.tag_bind('toolbox', "<<TreeviewSelect>>", self.update_toolbox_icon)
@@ -847,7 +844,7 @@ class WbRunner(tk.Frame):
     #                     Args Frame                        #
     #########################################################
         print("811")
-        tool_args_frame = ttk.Frame(overall_frame, padding='0.0i')
+        self.tool_args_frame = ttk.Frame(overall_frame, padding='0.0i')
         self.tool_args_frame = ttk.Frame(overall_frame, padding='0.0i')
         self.tool_args_frame.grid(row=2, column=0, sticky=tk.NSEW)
         self.tool_args_frame.columnconfigure(0, weight=1)
@@ -1126,6 +1123,9 @@ class WbRunner(tk.Frame):
 
         self.update_args_box()
         self.out_text.see("%d.%d" % (1, 0))
+
+        argScroll = ttk.Scrollbar(self.tool_args_frame, orient=tk.VERTICAL)
+        argScroll.grid(row=0, rowspan = param_num, column=1, sticky=(tk.N, tk.S))
 
     def update_args_box(self):
         print("update_args_box")
