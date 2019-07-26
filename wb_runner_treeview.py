@@ -770,7 +770,7 @@ class WbRunner(tk.Frame):
     #              Overall/Top level Frame                  #
     #########################################################
         toplevel_frame = ttk.Frame(self, padding='0.1i')
-        overall_frame = ttk.Frame(toplevel_frame, padding='0.1i')
+        overall_frame = ttk.Frame(self, padding='0.1i')
 
         overall_frame.grid(row=0, rowspan = 2, column=1, sticky=tk.NSEW)
         toplevel_frame.grid(row=0, column=0, sticky=tk.NSEW)
@@ -812,7 +812,7 @@ class WbRunner(tk.Frame):
         self.tools_frame = ttk.LabelFrame(toplevel_frame, text="{} Available Tools".format(
             len(self.toolslist)), padding='0.1i')
         
-        self.tool_tree = ttk.Treeview(self.tools_frame, height = 22)
+        self.tool_tree = ttk.Treeview(self.tools_frame, height = 21)
         index = 0
         print("self.lower_toolboxes: " + str(self.lower_toolboxes))
         for toolbox in self.lower_toolboxes:
@@ -854,7 +854,7 @@ class WbRunner(tk.Frame):
         self.search_bar = ttk.Entry(self.search_frame, width = 30)
         self.search_bar.grid(row = 0, column = 1, sticky=tk.NE)
         
-        self.search_results_listbox = tk.Listbox(self.search_frame, height=10, listvariable = self.upper_toolboxes) #add listvariable
+        self.search_results_listbox = tk.Listbox(self.search_frame, height=8, listvariable = self.upper_toolboxes) #add listvariable
         self.search_results_listbox.grid(row = 1, column = 0, columnspan = 2, sticky=tk.NSEW, pady = 5)
 
         self.search_scroll = ttk.Scrollbar(self.search_frame, orient=tk.VERTICAL, command=self.search_results_listbox.yview)
