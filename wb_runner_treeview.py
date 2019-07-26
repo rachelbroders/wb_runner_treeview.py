@@ -790,24 +790,21 @@ class WbRunner(tk.Frame):
     #########################################################
         toplevel_frame = ttk.Frame(self, padding='0.1i')
         self.tools_frame = ttk.LabelFrame(toplevel_frame, text="{} Available Tools".format(
-            len(self.upper_toolboxes)), padding='0.1i')
+            len(self.toolslist)), padding='0.1i')
         # self.toolnames = tk.StringVar(value=self.toolslist)
         
         self.tool_tree = ttk.Treeview(self.tools_frame, height = 22)
         index = 0
+        print("self.lower_toolboxes: " + str(self.lower_toolboxes))
         for toolbox in self.lower_toolboxes:
-            if toolbox.find('/') == (-1):
+            if toolbox.find('/') != (-1):      
+                self.tool_tree.insert(toolbox[:toolbox.find('/')], 0, iid = toolbox[toolbox.find('/') + 1:], text = toolbox[toolbox.find('/') + 1:], tags = 'toolbox', image = self.closed_toolbox_icon)
+                for tool in self.sorted_tools[index]:
+                    self.tool_tree.insert(toolbox[toolbox.find('/') + 1:], 'end', iid = tool, text = tool, tags = 'tool', image = self.tool_icon)       
+            else:
                 self.tool_tree.insert('', 'end', iid = toolbox, text = toolbox, tags = 'toolbox', image = self.closed_toolbox_icon)                         
                 for tool in self.sorted_tools[index]:
-                    self.tool_tree.insert(toolbox, 'end', iid = tool, text = tool, tags = 'tool', image = self.tool_icon)        
-            else:
-                # print("\t" + toolbox[:toolbox.find('/')])
-                # print("\t" + toolbox[toolbox.find('/') + 1:])
-                if self.tool_tree.exists(toolbox[:toolbox.find('/')]) == False:
-                    self.tool_tree.insert('', 'end', iid = toolbox[:toolbox.find('/')], text = toolbox[:toolbox.find('/')], tags = 'toolbox', image = self.closed_toolbox_icon)   
-                self.tool_tree.insert(toolbox[:toolbox.find('/')], 'end', iid = toolbox[toolbox.find('/') + 1:], text = toolbox[toolbox.find('/') + 1:], tags = 'toolbox', image = self.closed_toolbox_icon)
-                for tool in self.sorted_tools[index]:
-                    self.tool_tree.insert(toolbox[toolbox.find('/') + 1:], 'end', iid = tool, text = tool, tags = 'tool', image = self.tool_icon)
+                    self.tool_tree.insert(toolbox, 'end', iid = tool, text = tool, tags = 'tool', image = self.tool_icon) 
             index = index + 1 
 
         focus = self.tool_tree.grab_current()
@@ -1252,8 +1249,8 @@ class WbRunner(tk.Frame):
                 secondStripped = second.rstrip()
                 toolbox = firstStripped + "/" + secondStripped
                 self.lower_toolboxes.append(toolbox) 
-                if self.lower_toolboxes.__contains__(firstStripped):    #gets rid of upper toolbox with has sub toolboxes
-                    self.lower_toolboxes.remove(firstStripped) 
+                # if self.lower_toolboxes.__contains__(firstStripped):    #gets rid of upper toolbox with has sub toolboxes
+                #     self.lower_toolboxes.remove(firstStripped) 
         
         self.upper_toolboxes = sorted(self.upper_toolboxes)
         self.lower_toolboxes = sorted(self.lower_toolboxes)
@@ -1264,6 +1261,10 @@ class WbRunner(tk.Frame):
         # print("self.lower_toolboxes: " + str(self.lower_toolboxes))
         self.sorted_tools = [[] for i in range(len(self.lower_toolboxes))]
         count = 1
+        # print("self.tools_and_toolboxes: " + str(self.tools_and_toolboxes))
+        # print("len(self.tools_and_toolboxes): " + str(len(self.tools_and_toolboxes)))
+        # print("self.tools_and_toolboxes.split('\n'): " + str(self.tools_and_toolboxes.split('\n')))
+        # print("len(self.tools_and_toolboxes.split('\n')): " + str(len(self.tools_and_toolboxes.split('\n'))))
 
         for toolAndToolbox in self.tools_and_toolboxes.split('\n'):
             if toolAndToolbox.strip():
@@ -1276,7 +1277,7 @@ class WbRunner(tk.Frame):
                 for toolbox in self.lower_toolboxes:
                     if toolbox == itemToolboxStripped:
                         self.sorted_tools[index].append(tool)
-                        # print("***" + str(count) + ") " + tool + " added to " + toolbox)
+                        # print("\t" + tool + " added to " + toolbox)
                         break
                     index = index + 1
                 count = count + 1
