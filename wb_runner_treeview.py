@@ -25,6 +25,7 @@ from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 from tkinter import filedialog
 from tkinter import messagebox
+from tkinter import PhotoImage
 import webbrowser
 from WBT.whitebox_tools import WhiteboxTools, to_camelcase
 
@@ -780,6 +781,10 @@ class WbRunner(tk.Frame):
         
         (self.toolslist, selected_item) = self.get_tools_list()               #not sure why this is needed????
         self.tool_name = self.toolslist[selected_item]
+
+        self.tool_icon = tk.PhotoImage(file = 'C://Users//rbroders//Documents//scripts//tool.png')
+        self.open_toolbox_icon = tk.PhotoImage(file = 'C://Users//rbroders//Documents//scripts//opentools.png')
+        self.closed_toolbox_icon = tk.PhotoImage(file = 'C://Users//rbroders//Documents//scripts//closedToolbox.png')
     #########################################################
     #                  Toolboxes Frame                      #
     #########################################################
@@ -792,20 +797,25 @@ class WbRunner(tk.Frame):
         index = 0
         for toolbox in self.lower_toolboxes:
             if toolbox.find('/') == (-1):
-                self.tool_tree.insert('', 'end', iid = toolbox, text = toolbox)
+                self.tool_tree.insert('', 'end', iid = toolbox, text = toolbox, tags = 'toolbox', image = self.closed_toolbox_icon)                         
                 for tool in self.sorted_tools[index]:
-                    self.tool_tree.insert(toolbox, 'end', iid = tool, text = tool, tags = 'tool')        
+                    self.tool_tree.insert(toolbox, 'end', iid = tool, text = tool, tags = 'tool', image = self.tool_icon)        
             else:
                 # print("\t" + toolbox[:toolbox.find('/')])
                 # print("\t" + toolbox[toolbox.find('/') + 1:])
                 if self.tool_tree.exists(toolbox[:toolbox.find('/')]) == False:
-                    self.tool_tree.insert('', 'end', iid = toolbox[:toolbox.find('/')], text = toolbox[:toolbox.find('/')])   
-                self.tool_tree.insert(toolbox[:toolbox.find('/')], 'end', iid = toolbox[toolbox.find('/') + 1:], text = toolbox[toolbox.find('/') + 1:])
+                    self.tool_tree.insert('', 'end', iid = toolbox[:toolbox.find('/')], text = toolbox[:toolbox.find('/')], tags = 'toolbox', image = self.closed_toolbox_icon)   
+                self.tool_tree.insert(toolbox[:toolbox.find('/')], 'end', iid = toolbox[toolbox.find('/') + 1:], text = toolbox[toolbox.find('/') + 1:], tags = 'toolbox', image = self.closed_toolbox_icon)
                 for tool in self.sorted_tools[index]:
-                    self.tool_tree.insert(toolbox[toolbox.find('/') + 1:], 'end', iid = tool, text = tool, tags = 'tool')
+                    self.tool_tree.insert(toolbox[toolbox.find('/') + 1:], 'end', iid = tool, text = tool, tags = 'tool', image = self.tool_icon)
             index = index + 1 
 
+        focus = self.tool_tree.grab_current()
+        print(focus)
+
         self.tool_tree.tag_bind('tool', "<<TreeviewSelect>>", self.update_tool_help)
+        self.tool_tree.tag_bind('toolbox', "<<TreeviewSelect>>", self.update_toolbox_icon)
+
         self.tool_tree.grid(row=0, column=0, sticky=tk.NSEW)
         self.tool_tree.columnconfigure(0, weight=10)
         self.tool_tree.rowconfigure(0, weight=1)
@@ -844,6 +854,9 @@ class WbRunner(tk.Frame):
         self.tool_args_frame = ttk.Frame(overall_frame, padding='0.0i')
         self.tool_args_frame.grid(row=2, column=0, sticky=tk.NSEW)
         self.tool_args_frame.columnconfigure(0, weight=1)
+        # sb = ttk.Scrollbar(tool_args_frame, orient=tk.VERTICAL)                 #effort to make scrollbar over arguments
+        # sb.grid(row=0, column=1, sticky=(tk.N, tk.S))
+        
         print("816")
 
     #########################################################
@@ -963,6 +976,12 @@ class WbRunner(tk.Frame):
 
         self.master.config(menu=menubar)
         print("928")
+        
+    #########################################################
+    #                       Icons                           #
+    #########################################################
+        
+
 
     def help(self):
         print("help")
@@ -1041,6 +1060,20 @@ class WbRunner(tk.Frame):
     def view_code(self):
         print("view_code")
         webbrowser.open_new_tab(wbt.view_code(self.tool_name).strip())
+
+    def update_toolbox_icon(self, event):
+        print("update_toolbox_icon")
+        curItem = self.tool_tree.focus()
+        dict = self.tool_tree.item(curItem)
+        print("*********************dict: " + str(dict))
+        self.toolbox_name = dict.get('text')
+        print("*********************self.toolbox_name: " + self.toolbox_name)
+        self.toolbox_open = dict.get('open')
+        print("*********************self.toolbox_open: " + str(self.toolbox_open))
+        if self.toolbox_open == True:
+            self.tool_tree.item(self.toolbox_name, image = self.open_toolbox_icon)
+        else:
+            self.tool_tree.item(self.toolbox_name, image = self.closed_toolbox_icon)
 
     def update_tool_help(self, event):
         print("update_tool_help")
