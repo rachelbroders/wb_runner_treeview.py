@@ -827,7 +827,7 @@ class WbRunner(tk.Frame):
             index = index + 1 
 
 
-        self.tool_tree.tag_bind('tool', "<<TreeviewSelect>>", self.update_tool_help)
+        self.tool_tree.tag_bind('tool', "<<TreeviewSelect>>", self.tree_selection)
         self.tool_tree.tag_bind('toolbox', "<<TreeviewSelect>>", self.update_toolbox_icon)
 
         self.tool_tree.grid(row=0, column=0, sticky=tk.NSEW)
@@ -857,7 +857,7 @@ class WbRunner(tk.Frame):
         
         self.search_results_listbox = tk.Listbox(self.search_frame, height=8) #add listvariable
         self.search_results_listbox.grid(row = 1, column = 0, columnspan = 2, sticky=tk.NSEW, pady = 5)
-        self.search_results_listbox.bind("<<ListboxSelect>>", self.search_update_tool_help)
+        self.search_results_listbox.bind("<<ListboxSelect>>", self.search_selection)
 
         self.search_scroll = ttk.Scrollbar(self.search_frame, orient=tk.VERTICAL, command=self.search_results_listbox.yview)
         self.search_scroll.grid(row=1, column=2, sticky=(tk.N, tk.S))
@@ -1141,16 +1141,8 @@ class WbRunner(tk.Frame):
             self.tool_tree.item(self.toolbox_name, image = self.open_toolbox_icon)
         else:
             self.tool_tree.item(self.toolbox_name, image = self.closed_toolbox_icon)
-    # Added 'search_update_tool_help' -RACHEL
-    def search_update_tool_help(self, event):
-        print("search_update_tool_help")
-
-        selection = self.search_results_listbox.curselection()
-        self.tool_name = self.search_results_listbox.get(selection[0])
-        # print("*********************temp: " + str(temp))
-        print("*********************self.tool_name: " + self.tool_name)
-
-        self.out_text.delete('1.0', tk.END)
+    
+    def update_tool_help(self):
         for widget in self.tool_args_frame.winfo_children():
             widget.destroy()
 
@@ -1196,67 +1188,25 @@ class WbRunner(tk.Frame):
         self.update_args_box()
         self.out_text.see("%d.%d" % (1, 0))
 
-        argScroll = ttk.Scrollbar(self.tool_args_frame, orient=tk.VERTICAL)
-        argScroll.grid(row=0, rowspan = param_num, column=1, sticky=(tk.N, tk.S))
+    
+    # Added 'search_selection' -RACHEL
+    def search_selection(self, event):
+        print("search_selection")
+        selection = self.search_results_listbox.curselection()
+        self.tool_name = self.search_results_listbox.get(selection[0])
+        # print("*********************temp: " + str(temp))
+        print("*********************self.tool_name: " + self.tool_name)
+        self.update_tool_help()
 
-
-    def update_tool_help(self, event):
-        print("update_tool_help")
-
+    # Added 'tree_selection' -RACHEL   
+    def tree_selection(self, event):
+        print("tree_selection")
         curItem = self.tool_tree.focus()
         temp = self.tool_tree.item(curItem)
         self.tool_name = temp.get('text')
         # print("*********************temp: " + str(temp))
         print("*********************self.tool_name: " + self.tool_name)
-
-        self.out_text.delete('1.0', tk.END)
-        for widget in self.tool_args_frame.winfo_children():
-            widget.destroy()
-
-        k = wbt.tool_help(self.tool_name)
-        self.print_to_output(k)
-
-        j = json.loads(wbt.tool_parameters(self.tool_name))
-        param_num = 0
-        for p in j['parameters']:
-            json_str = json.dumps(
-                p, sort_keys=True, indent=2, separators=(',', ': '))
-            pt = p['parameter_type']
-            if 'ExistingFileOrFloat' in pt:
-                ff = FileOrFloat(json_str, self, self.tool_args_frame)
-                ff.grid(row=param_num, column=0, sticky=tk.NSEW)
-                param_num = param_num + 1
-            elif ('ExistingFile' in pt or 'NewFile' in pt or 'Directory' in pt):
-                fs = FileSelector(json_str, self, self.tool_args_frame)
-                fs.grid(row=param_num, column=0, sticky=tk.NSEW)
-                param_num = param_num + 1
-            elif 'FileList' in pt:
-                b = MultifileSelector(json_str, self, self.tool_args_frame)
-                b.grid(row=param_num, column=0, sticky=tk.W)
-                param_num = param_num + 1
-            elif 'Boolean' in pt:
-                b = BooleanInput(json_str, self.tool_args_frame)
-                b.grid(row=param_num, column=0, sticky=tk.W)
-                param_num = param_num + 1
-            elif 'OptionList' in pt:
-                b = OptionsInput(json_str, self.tool_args_frame)
-                b.grid(row=param_num, column=0, sticky=tk.W)
-                param_num = param_num + 1
-            elif ('Float' in pt or 'Integer' in pt or
-                  'String' in pt or 'StringOrNumber' in pt or
-                  'StringList' in pt or 'VectorAttributeField' in pt):
-                b = DataInput(json_str, self.tool_args_frame)
-                b.grid(row=param_num, column=0, sticky=tk.NSEW)
-                param_num = param_num + 1
-            else:
-                messagebox.showinfo(
-                    "Error", "Unsupported parameter type: {}.".format(pt))
-
-        self.update_args_box()
-        self.out_text.see("%d.%d" % (1, 0))
-
-        argScroll = ttk.Scrollbar(self.tool_args_frame, orient=tk.VERTICAL)
-        argScroll.grid(row=0, rowspan = param_num, column=1, sticky=(tk.N, tk.S))
+        self.update_tool_help()
 
     def update_args_box(self):
         print("update_args_box")
