@@ -803,7 +803,6 @@ class WbRunner(tk.Frame):
         (self.toolslist, selected_item) = self.get_tools_list()               #not sure why this is needed????
         print("self.toolslist: " + str(self.toolslist))
         self.tool_name = self.toolslist[selected_item]
-
         self.tool_icon = tk.PhotoImage(file = 'C://Users//rbroders//Documents//scripts//tool.png')
         self.open_toolbox_icon = tk.PhotoImage(file = 'C://Users//rbroders//Documents//scripts//opentools.png')
         self.closed_toolbox_icon = tk.PhotoImage(file = 'C://Users//rbroders//Documents//scripts//closedToolbox.png')
@@ -1139,29 +1138,12 @@ class WbRunner(tk.Frame):
         else:
             self.tool_tree.item(self.toolbox_name, image = self.closed_toolbox_icon)
     
-    # Added 'search_selection' -RACHEL
-    # def search_selection(self, event):
-    #     print("search_selection")
-    #     selection = self.search_results_listbox.curselection()
-    #     self.tool_name = self.search_results_listbox.get(selection[0])
-    #     print("*********************self.tool_name: " + self.tool_name)
-    #     self.update_tool_help()
-
-    # # Added 'tree_selection' -RACHEL   
-    # def tree_selection(self, event):
-    #     print("tree_selection")
-    #     curItem = self.tool_tree.focus()
-    #     temp = self.tool_tree.item(curItem)
-    #     self.tool_name = temp.get('text')
-    #     print("*********************self.tool_name: " + self.tool_name)
-    #     self.update_tool_help()
     
     # Added 'search_update_tool_help' -RACHEL
     def search_update_tool_help(self, event):
         print("search_update_tool_help")
         selection = self.search_results_listbox.curselection()
         self.tool_name = self.search_results_listbox.get(selection[0])
-        self.tool_name = to_camelcase(self.tool_name)
         self.update_tool_help()
   
     # Added 'tree_update_tool_help' -RACHEL
@@ -1170,7 +1152,6 @@ class WbRunner(tk.Frame):
         curItem = self.tool_tree.focus()
         temp = self.tool_tree.item(curItem)
         self.tool_name = temp.get('text')
-        self.tool_name = to_camelcase(self.tool_name)
         self.update_tool_help()
 
     #part of original 'update_tool_help'
