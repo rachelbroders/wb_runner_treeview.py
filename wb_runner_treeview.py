@@ -791,16 +791,17 @@ class WbRunner(tk.Frame):
     #                  Calling basics                       #
     #########################################################
         self.toolbox_list = self.get_toolboxes()
-        print("self.toolbox_list: " + str(self.toolbox_list))
+        print("@ self.toolbox_list: " + str(self.toolbox_list))
         self.sort_toolboxes()
-        # print("self.upper_toolboxes: " + str(self.upper_toolboxes))
-        # print("self.lower_toolboxes: " + str(self.lower_toolboxes))
+        print("@ self.upper_toolboxes: " + str(self.upper_toolboxes))
+        print("@ self.lower_toolboxes: " + str(self.lower_toolboxes))
         self.tools_and_toolboxes = wbt.toolbox('')
         # print("self.tools_and_toolboxes: " + str(self.tools_and_toolboxes))
         self.sort_tools_by_toolbox()
         # print("self.sorted_tools: " + str(self.sorted_tools))
         
         (self.toolslist, selected_item) = self.get_tools_list()               #not sure why this is needed????
+        print("self.toolslist: " + str(self.toolslist))
         self.tool_name = self.toolslist[selected_item]
 
         self.tool_icon = tk.PhotoImage(file = 'C://Users//rbroders//Documents//scripts//tool.png')
@@ -923,9 +924,7 @@ class WbRunner(tk.Frame):
         k = wbt.tool_help(self.tool_name)
         self.out_text = ScrolledText(
             output_frame, width=63, height=15, wrap=tk.NONE, padx=7, pady=7)
-        print("A")
         self.out_text.insert(tk.END, k)
-        print("B")
         self.out_text.grid(row=1, column=0, sticky=tk.NSEW)
         self.out_text.columnconfigure(0, weight=1)
         output_frame.grid(row=4, column=0, sticky=tk.NSEW)
@@ -938,10 +937,8 @@ class WbRunner(tk.Frame):
         # Add the binding
         if _platform == "darwin":
             self.out_text.bind("<Command-Key-a>", self.select_all)
-            print("^^^if^^^")
         else:
             self.out_text.bind("<Control-Key-a>", self.select_all)
-            print("^^^else^^^")
         print("870")
 
     #########################################################
@@ -1164,6 +1161,7 @@ class WbRunner(tk.Frame):
         print("search_update_tool_help")
         selection = self.search_results_listbox.curselection()
         self.tool_name = self.search_results_listbox.get(selection[0])
+        self.tool_name = to_camelcase(self.tool_name)
         self.update_tool_help()
   
     # Added 'tree_update_tool_help' -RACHEL
@@ -1172,6 +1170,7 @@ class WbRunner(tk.Frame):
         curItem = self.tool_tree.focus()
         temp = self.tool_tree.item(curItem)
         self.tool_name = temp.get('text')
+        self.tool_name = to_camelcase(self.tool_name)
         self.update_tool_help()
 
     #part of original 'update_tool_help'
@@ -1298,7 +1297,7 @@ class WbRunner(tk.Frame):
             if item:
                 value = to_camelcase(item)
                 list.append(value)
-                if value == self.tool_name:
+                if item == self.tool_name:
                     selected_item = len(list) - 1
         if selected_item == -1:
             selected_item = 0
@@ -1337,15 +1336,15 @@ class WbRunner(tk.Frame):
         self.lower_toolboxes = []
         for toolbox in self.toolboxes:
             if toolbox.find('/') == (-1):
-                toolbox = to_camelcase(toolbox)
+                # toolbox = to_camelcase(toolbox)
                 toolboxStripped = toolbox.rstrip()
                 self.upper_toolboxes.append(toolboxStripped)
                 self.lower_toolboxes.append(toolboxStripped)
             else:
                 first = toolbox[:toolbox.find('/')]
                 second = toolbox[toolbox.find('/') + 1:]
-                first = to_camelcase(first)
-                second = to_camelcase(second)
+                # first = to_camelcase(first)
+                # second = to_camelcase(second)
                 firstStripped = first.rstrip()
                 secondStripped = second.rstrip()
                 toolbox = firstStripped + "/" + secondStripped
@@ -1372,7 +1371,7 @@ class WbRunner(tk.Frame):
                 tool = toolAndToolbox.strip().split(':')[0].strip()
 
                 itemToolbox = toolAndToolbox.strip().split(':')[1].strip()
-                itemToolbox = to_camelcase(itemToolbox)
+                # itemToolbox = to_camelcase(itemToolbox)
                 itemToolboxStripped = itemToolbox.rstrip()
                 index = 0
                 for toolbox in self.lower_toolboxes:
