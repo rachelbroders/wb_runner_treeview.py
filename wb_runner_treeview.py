@@ -1162,70 +1162,22 @@ class WbRunner(tk.Frame):
     # Added 'search_update_tool_help' -RACHEL
     def search_update_tool_help(self, event):
         print("search_update_tool_help")
-
         selection = self.search_results_listbox.curselection()
         self.tool_name = self.search_results_listbox.get(selection[0])
-        # print("*********************temp: " + str(temp))
-        print("*********************self.tool_name: " + self.tool_name)
-
-        self.out_text.delete('1.0', tk.END)
-        for widget in self.tool_args_frame.winfo_children():
-            widget.destroy()
-
-        k = wbt.tool_help(self.tool_name)
-        self.print_to_output(k)
-
-        j = json.loads(wbt.tool_parameters(self.tool_name))
-        param_num = 0
-        for p in j['parameters']:
-            json_str = json.dumps(
-                p, sort_keys=True, indent=2, separators=(',', ': '))
-            pt = p['parameter_type']
-            if 'ExistingFileOrFloat' in pt:
-                ff = FileOrFloat(json_str, self, self.tool_args_frame)
-                ff.grid(row=param_num, column=0, sticky=tk.NSEW)
-                param_num = param_num + 1
-            elif ('ExistingFile' in pt or 'NewFile' in pt or 'Directory' in pt):
-                fs = FileSelector(json_str, self, self.tool_args_frame)
-                fs.grid(row=param_num, column=0, sticky=tk.NSEW)
-                param_num = param_num + 1
-            elif 'FileList' in pt:
-                b = MultifileSelector(json_str, self, self.tool_args_frame)
-                b.grid(row=param_num, column=0, sticky=tk.W)
-                param_num = param_num + 1
-            elif 'Boolean' in pt:
-                b = BooleanInput(json_str, self.tool_args_frame)
-                b.grid(row=param_num, column=0, sticky=tk.W)
-                param_num = param_num + 1
-            elif 'OptionList' in pt:
-                b = OptionsInput(json_str, self.tool_args_frame)
-                b.grid(row=param_num, column=0, sticky=tk.W)
-                param_num = param_num + 1
-            elif ('Float' in pt or 'Integer' in pt or
-                  'String' in pt or 'StringOrNumber' in pt or
-                  'StringList' in pt or 'VectorAttributeField' in pt):
-                b = DataInput(json_str, self.tool_args_frame)
-                b.grid(row=param_num, column=0, sticky=tk.NSEW)
-                param_num = param_num + 1
-            else:
-                messagebox.showinfo(
-                    "Error", "Unsupported parameter type: {}.".format(pt))
-
-        self.update_args_box()
-        self.out_text.see("%d.%d" % (1, 0))
-
-        argScroll = ttk.Scrollbar(self.tool_args_frame, orient=tk.VERTICAL)
-        argScroll.grid(row=0, rowspan = param_num, column=1, sticky=(tk.N, tk.S))
-
+        self.update_tool_help()
   
-    #part of original 'update_tool_help'
+    # Added 'tree_update_tool_help' -RACHEL
     def tree_update_tool_help(self, event):
-        print("update_tool_help")
+        print("tree_update_tool_help")
         curItem = self.tool_tree.focus()
         temp = self.tool_tree.item(curItem)
         self.tool_name = temp.get('text')
-        print("*********************self.tool_name: " + self.tool_name)
+        self.update_tool_help()
 
+    #part of original 'update_tool_help'
+    def update_tool_help(self):
+        print("update_tool_help")
+        print("*********************self.tool_name: " + self.tool_name)
         self.out_text.delete('1.0', tk.END)
         for widget in self.tool_args_frame.winfo_children():
             widget.destroy()
