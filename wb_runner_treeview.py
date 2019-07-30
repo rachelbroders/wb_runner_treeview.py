@@ -1088,25 +1088,43 @@ class WbRunner(tk.Frame):
     def update_search(self, event):
         print("+++++++++++++++++++++++++update_search")
         self.search_string = self.search_text.get()
+        self.search_string = self.search_string.lower()
+        print("self.search_string: " + str(self.search_string))
+        search_list = []
         # self.search_string = str(self.search_text)
         # print("-------------------------self.search_string: " + self.search_string)
         self.search_results_listbox.delete(0, 'end')
-        self.get_descriptions()
         num_results = 0
-        for tool in self.toolslist:
-            if tool.find(self.search_string) != (-1):
+        for tool in self.toolslist:                                     #search tool names
+            toolLower = tool.lower()
+            if toolLower.find(self.search_string) != (-1):
                 num_results = num_results + 1
                 self.search_results_listbox.insert(num_results, tool)
+                search_list.append(tool)
+                print("tool name addition: " + str(tool))
+        index = 0
+        self.get_descriptions()
+        for description in self.descriptionList:                        #search tool descriptions
+            descriptionLower = description.lower()
+            if descriptionLower.find(self.search_string) != (-1):
+                found = 0
+                for item in search_list: # check if this tool is already in the listbox
+                    if self.toolslist[index] == item:
+                        found = 1
+                if found == 0:  # add to listbox
+                    num_results = num_results + 1
+                    self.search_results_listbox.insert(num_results, self.toolslist[index])
+                    print("description addition: " + str(self.toolslist[index]))
+            index = index + 1
 
     def get_descriptions(self):
+        print("get_descriptions")
+        self.descriptionList = []
         tools = wbt.list_tools()
-        print("tools: " + str(tools))
-        descriptionList = []
-        for t in tools.split("\n"):
-            print("\t" + str(t))
-            # description = t.strip().split(":")[1].strip().rstrip('.')
-            # descriptionList.append(description)
-        # print("str(descriptionList): " + str(descriptionList))
+        toolsItems = tools.items()
+        for t in toolsItems:
+            self.descriptionList.append(t[1])
+        # print("self.descriptionList: " + str(self.descriptionList))
 
     def update_toolbox_icon(self, event):
         print("update_toolbox_icon")
