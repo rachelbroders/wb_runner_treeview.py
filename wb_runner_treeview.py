@@ -16,6 +16,7 @@ from os import path
 # from __future__ import print_function
 # from enum import Enum
 import platform
+import re                                  #Added by Rachel for snake_to_camel
 from pathlib import Path
 import glob
 from sys import platform as _platform
@@ -904,13 +905,19 @@ class WbRunner(tk.Frame):
     #########################################################
         print("841")
         buttonsFrame = ttk.Frame(overall_frame, padding='0.2i')
+        
         self.run_button = ttk.Button(
             buttonsFrame, text="Run", width=8, command=self.run_tool)
-        # self.run_button.pack(pady=10, padx=10)
         self.run_button.grid(row=0, column=0)
+        
         self.quitButton = ttk.Button(
             buttonsFrame, text="Cancel", width=8, command=self.cancel_operation)
         self.quitButton.grid(row=0, column=1)
+       
+        self.helpButton = ttk.Button(
+            buttonsFrame, text="Help", width=8, command=self.tool_help)    #FIXME create self.tool_help
+        self.helpButton.grid(row = 0, column = 2)
+
         buttonsFrame.grid(row=3, column=0, sticky=tk.E)
         
     #########################################################
@@ -1079,9 +1086,50 @@ class WbRunner(tk.Frame):
         self.print_line_to_output("Cancelling operation...")
         self.progress.update_idletasks()
 
+    # taken from tools_info_john.py
+    def camel_to_snake(self, s):
+        _underscorer1 = re.compile(r'(.)([A-Z][a-z]+)')
+        _underscorer2 = re.compile('([a-z0-9])([A-Z])')
+        subbed = _underscorer1.sub(r'\1_\2', s)
+        return _underscorer2.sub(r'\1_\2', subbed).lower()
+
+    def tool_help(self):
+        print("Entered tool_help")
+        index = 0
+        found = False
+        for toolbox in self.lower_toolboxes:
+            print("((((((((((((((((((((index: " + str(index) + "))))))))))))))))))))))))))")
+            print("\t toolbox: " + toolbox)
+            for tool in self.sorted_tools[index]:
+                print("\t\t tool: " + tool)
+                if tool == self.tool_name:
+                    self.toolbox_name = toolbox
+                    found = True
+                    break
+            if found:
+                break
+            index = index + 1
+        print("-------------->self.tool_name: " + self.tool_name)
+        print("((((((((((((((((((((index: " + str(index) + "))))))))))))))))))))))))))")
+        print("++++++++++++++>self.toolbox_name: " + self.toolbox_name)
+        if index == 10:
+            self.toolbox_name = to_camelcase(self.toolbox_name)
+        print("++++++++++++++>self.toolbox_name: " + self.toolbox_name)
+        self.toolbox_name = self.camel_to_snake(self.toolbox_name)
+        print("++++++++++++++>self.toolbox_name: " + self.toolbox_name)
+        self.toolbox_name = self.toolbox_name.replace('/', '')
+        print("++++++++++++++>self.toolbox_name: " + self.toolbox_name)
+        self.toolbox_name = self.toolbox_name.replace(' ', '')    #LiDAR -> li_dar
+        print("-------------->self.toolbox_name: " + self.toolbox_name)
+        address = "https://jblindsay.github.io/wbt_book/available_tools/" + self.toolbox_name + ".html#" + self.tool_name
+        print("address: " + address)
+        
+        webbrowser.open_new_tab(address)
+    
     def view_code(self):
         print("view_code")
-        webbrowser.open_new_tab(wbt.view_code(self.tool_name).strip())
+        print("wbt.view_code(self.tool_name).strip(): " + wbt.view_code(self.tool_name).strip())
+        # webbrowser.open_new_tab(wbt.view_code(self.tool_name).strip())
     
     # Added 'update_search' -RACHEL
     def update_search(self, event):
@@ -1207,7 +1255,6 @@ class WbRunner(tk.Frame):
         argScroll = ttk.Scrollbar(self.tool_args_frame, orient=tk.VERTICAL)
         argScroll.grid(row=0, rowspan = param_num, column=1, sticky=(tk.N, tk.S))
   
-
     def update_args_box(self):
         print("update_args_box")
         s = ""
