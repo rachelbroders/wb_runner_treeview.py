@@ -811,13 +811,13 @@ class WbRunner(tk.Frame):
         index = 0
         for toolbox in self.lower_toolboxes:
             if toolbox.find('/') != (-1):      
-                self.tool_tree.insert(toolbox[:toolbox.find('/')], 0, iid = toolbox[toolbox.find('/') + 1:], text = toolbox[toolbox.find('/') + 1:], tags = 'toolbox', image = self.closed_toolbox_icon)
+                self.tool_tree.insert(toolbox[:toolbox.find('/')], 0, text = "  " + toolbox[toolbox.find('/') + 1:], iid = toolbox[toolbox.find('/') + 1:], tags = 'toolbox', image = self.closed_toolbox_icon)
                 for tool in self.sorted_tools[index]:
-                    self.tool_tree.insert(toolbox[toolbox.find('/') + 1:], 'end', iid = tool, text = tool, tags = 'tool', image = self.tool_icon)       
+                    self.tool_tree.insert(toolbox[toolbox.find('/') + 1:], 'end', text = "  " + tool, tags = 'tool', iid = tool, image = self.tool_icon)       
             else:
-                self.tool_tree.insert('', 'end', iid = toolbox, text = toolbox, tags = 'toolbox', image = self.closed_toolbox_icon)                         
+                self.tool_tree.insert('', 'end', text = "  " + toolbox, iid = toolbox, tags = 'toolbox', image = self.closed_toolbox_icon)                         
                 for tool in self.sorted_tools[index]:
-                    self.tool_tree.insert(toolbox, 'end', iid = tool, text = tool, tags = 'tool', image = self.tool_icon) 
+                    self.tool_tree.insert(toolbox, 'end', text = "  " + tool, iid = tool, tags = 'tool', image = self.tool_icon) 
             index = index + 1 
 
 
@@ -1124,7 +1124,7 @@ class WbRunner(tk.Frame):
     def update_toolbox_icon(self, event):
         curItem = self.tool_tree.focus()
         dict = self.tool_tree.item(curItem)
-        self.toolbox_name = dict.get('text')
+        self.toolbox_name = dict.get('text'). replace("  ", "")
         self.toolbox_open = dict.get('open')
         if self.toolbox_open == True:
             self.tool_tree.item(self.toolbox_name, image = self.open_toolbox_icon)
@@ -1140,7 +1140,7 @@ class WbRunner(tk.Frame):
     # Added 'tree_update_tool_help' -RACHEL
     def tree_update_tool_help(self, event):
         curItem = self.tool_tree.focus()
-        self.tool_name = self.tool_tree.item(curItem).get('text')
+        self.tool_name = self.tool_tree.item(curItem).get('text').replace("  ", "")
         self.update_tool_help()
 
     #part of original 'update_tool_help'
