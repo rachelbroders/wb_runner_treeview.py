@@ -70,10 +70,10 @@ class FileSelector(tk.Frame):
         if default_value:
             self.value.set(default_value)
 
-        # self.img = tk.PhotoImage(file=script_dir + "/img/open.gif")
-        # self.open_button = ttk.Button(fs_frame, width=55, image=self.img, command=self.select_dir)
-        self.open_button = ttk.Button(
-            fs_frame, width=4, text="...", command=self.select_file)
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        self.open_file_icon = tk.PhotoImage(file =  dir_path + '//resources//Images//open.png')
+        
+        self.open_button = ttk.Button(fs_frame, width=4, image = self.open_file_icon, command=self.select_file, padding = '0.02i')
         self.open_button.grid(row=0, column=1, sticky=tk.E)
         self.open_button.columnconfigure(0, weight=1)
         fs_frame.grid(row=1, column=0, sticky=tk.NSEW)
@@ -788,9 +788,9 @@ class WbRunner(tk.Frame):
         self.tool_name = self.tools_list[selected_item]
         
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.tool_icon = tk.PhotoImage(file = dir_path + '//Images//tool.png')
-        self.open_toolbox_icon = tk.PhotoImage(file =  dir_path + '//Images//opentools.png')
-        self.closed_toolbox_icon = tk.PhotoImage(file =  dir_path + '//Images//closedToolbox.png')
+        self.tool_icon = tk.PhotoImage(file = dir_path + '//resources//Images//tool.png')
+        self.open_toolbox_icon = tk.PhotoImage(file =  dir_path + '//resources//Images//opentools.png')
+        self.closed_toolbox_icon = tk.PhotoImage(file =  dir_path + '//resources//Images//closedToolbox.png')
     #########################################################
     #                  Toolboxes Frame                      #
     #########################################################
