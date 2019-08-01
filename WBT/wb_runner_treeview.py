@@ -839,7 +839,7 @@ class WbRunner(tk.Frame):
         self.search_bar = ttk.Entry(self.search_frame, width = 30, textvariable = self.search_text)
         self.search_bar.grid(row = 0, column = 1, sticky=tk.NE)
         
-        self.search_results_listbox = tk.Listbox(self.search_frame, height=8) 
+        self.search_results_listbox = tk.Listbox(self.search_frame, height=11) 
         self.search_results_listbox.grid(row = 1, column = 0, columnspan = 2, sticky=tk.NSEW, pady = 5)
         self.search_results_listbox.bind("<<ListboxSelect>>", self.search_update_tool_help)
 
