@@ -769,23 +769,23 @@ class WbRunner(tk.Frame):
 
     #########################################################
     #              Overall/Top level Frame                  #
-    #########################################################
-        self.toplevel_frame = ttk.Frame(self, padding='0.1i')
+    #########################################################     
+        toplevel_frame = ttk.Frame(self, padding='0.1i')
         overall_frame = ttk.Frame(self, padding='0.1i')
 
-        overall_frame.grid(row=0, rowspan = 2, column=1, sticky=tk.NSEW)
-        self.toplevel_frame.grid(row=0, column=0, sticky=tk.NSEW)
+        overall_frame.grid(row=0, column=1, sticky=tk.NSEW)
+        toplevel_frame.grid(row=0, column=0, sticky=tk.NSEW)
 
         # overall_frame.columnconfigure(0, weight=1)
-        # self.toplevel_frame.columnconfigure(0, weight=1)
+        # toplevel_frame.columnconfigure(0, weight=1)
 
-        # self.toplevel_frame.rowconfigure(0, weight = 10)
-        # self.toplevel_frame.rowconfigure(1, weight = 4)
+        # toplevel_frame.rowconfigure(0, weight = 10)
+        # toplevel_frame.rowconfigure(1, weight = 4)
 
-        # self.toplevel_frame.columnconfigure(1, weight=4)
+        # toplevel_frame.columnconfigure(1, weight=4)
         # self.pack(fill=tk.BOTH, expand=1)
-        # self.toplevel_frame.columnconfigure(0, weight=1)
-        # self.toplevel_frame.rowconfigure(0, weight=1)
+        # toplevel_frame.columnconfigure(0, weight=1)
+        # toplevel_frame.rowconfigure(0, weight=1)
       
         
     #########################################################
@@ -804,7 +804,7 @@ class WbRunner(tk.Frame):
     #########################################################
     #                  Toolboxes Frame                      #
     #########################################################
-        self.tools_frame = ttk.LabelFrame(self.toplevel_frame, text="{} Available Tools".format(
+        self.tools_frame = ttk.LabelFrame(toplevel_frame, text="{} Available Tools".format(
             len(self.tools_list)), padding='0.1i')
         
         self.tool_tree = ttk.Treeview(self.tools_frame, height = 21)
@@ -840,10 +840,7 @@ class WbRunner(tk.Frame):
     #                     Search Bar                        #
     #########################################################
         self.search_list = []
-        self.search_frame = ttk.LabelFrame(self.toplevel_frame, padding='0.1i', text="{} Tools Found".format(len(self.search_list)))       
-        
-        # self.search_frame_lb2 = ttk.Label(self.search_frame, text="{} Tools Found".format(len(self.search_list)), justify=tk.RIGHT)
-        # self.search_frame_lb2.grid(row=2, column=0, sticky=tk.SE)
+        self.search_frame = ttk.LabelFrame(toplevel_frame, padding='0.1i', text="{} Tools Found".format(len(self.search_list)))       
 
         self.search_label = ttk.Label(self.search_frame, text = "Search: ")
         self.search_label.grid(row = 0, column = 0, sticky=tk.NW)
@@ -852,7 +849,7 @@ class WbRunner(tk.Frame):
         self.search_bar = ttk.Entry(self.search_frame, width = 30, textvariable = self.search_text)
         self.search_bar.grid(row = 0, column = 1, sticky=tk.NE)
         
-        self.search_results_listbox = tk.Listbox(self.search_frame, height=8) #add listvariable
+        self.search_results_listbox = tk.Listbox(self.search_frame, height=8) 
         self.search_results_listbox.grid(row = 1, column = 0, columnspan = 2, sticky=tk.NSEW, pady = 5)
         self.search_results_listbox.bind("<<ListboxSelect>>", self.search_update_tool_help)
 
@@ -878,19 +875,31 @@ class WbRunner(tk.Frame):
         self.view_code_button = ttk.Button(
             current_tool_frame, text="View Code", width=12, command=self.view_code)
         self.view_code_button.grid(row=0, column=1, sticky=tk.E)
-        current_tool_frame.grid(row=1, column=0, sticky=tk.NSEW)
+        current_tool_frame.grid(row=0, column=0, columnspan = 2, sticky=tk.NSEW)
         current_tool_frame.columnconfigure(0, weight=1)
         current_tool_frame.columnconfigure(1, weight=1)
 
-    #########################################################
-    #                     Args Frame                        #
-    #########################################################
-        self.tool_args_frame = ttk.Frame(overall_frame, padding='0.02i')
-        self.tool_args_frame.grid(row=2, column=0, sticky=tk.NSEW)
-        self.tool_args_frame.columnconfigure(0, weight=1)
-        # sb = ttk.Scrollbar(tool_args_frame, orient=tk.VERTICAL)                 #effort to make scrollbar over arguments
-        # sb.grid(row=0, column=1, sticky=(tk.N, tk.S))
+    ################################################################################
+    #    Args Frame (https://gist.github.com/bakineugene/76c8f9bcec5b390e45df)     #
+    ################################################################################
+        # create a canvas object and a vertical scrollbar for scrolling it
+        # self.argFrame = ttk.Frame(overall_frame, padding='0.0i')
+        self.argScroll = ttk.Scrollbar(overall_frame, orient='vertical')
+        self.argScroll.grid(row = 1, column = 1, sticky = (tk.NS, tk.E))
+        self.argCanvas = tk.Canvas(overall_frame, bd=0, highlightthickness=0, yscrollcommand=self.argScroll.set)
+        self.argCanvas.grid(row = 1, column = 0, sticky = tk.NSEW)
+        self.argScroll.config(command=self.argCanvas.yview)
 
+        # reset the view
+        self.argCanvas.xview_moveto(0)
+        self.argCanvas.yview_moveto(0)
+
+        # create a frame inside the self.argCanvas which will be scrolled with it
+        self.argFrameScroll = ttk.Frame(self.argCanvas)
+        self.argFrameScroll_id = self.argCanvas.create_window(0, 0, window=self.argFrameScroll, anchor="nw")
+
+        self.argFrameScroll.bind('<Configure>', self.configure_argFrameScroll)
+        self.argCanvas.bind('<Configure>', self.configure_argCanvas)
     #########################################################
     #                   Buttons Frame                       #
     #########################################################
@@ -905,26 +914,30 @@ class WbRunner(tk.Frame):
         self.quitButton.grid(row=0, column=1)
        
         self.helpButton = ttk.Button(
-            buttonsFrame, text="Help", width=8, command=self.tool_help)    #FIXME create self.tool_help
+            buttonsFrame, text="Help", width=8, command=self.tool_help)   
         self.helpButton.grid(row = 0, column = 2)
 
-        buttonsFrame.grid(row=3, column=0, sticky=tk.E)
+        buttonsFrame.grid(row=2, column=0, columnspan = 2, sticky=tk.E)
         
     #########################################################
     #                  Output Frame                      #
     #########################################################                
-        output_frame = ttk.Frame(overall_frame, padding='0.2i')
+        # output_frame = ttk.Frame(overall_frame, padding='0.2i')
+        output_frame = ttk.Frame(overall_frame)
         outlabel = ttk.Label(output_frame, text="Output:", justify=tk.LEFT)
         outlabel.grid(row=0, column=0, sticky=tk.NW)
         k = wbt.tool_help(self.tool_name)
         self.out_text = ScrolledText(
-            output_frame, width=63, height=15, wrap=tk.NONE, padx=7, pady=7)
+            output_frame, width=63, height=15, wrap=tk.NONE, padx=7, pady=7, exportselection = 0)
+        
         self.out_text.insert(tk.END, k)
         self.out_text.grid(row=1, column=0, sticky=tk.NSEW)
         self.out_text.columnconfigure(0, weight=1)
-        output_frame.grid(row=4, column=0, sticky=tk.NSEW)
+        output_frame.grid(row=3, column=0, columnspan = 2, sticky=(tk.NS, tk.E))
         output_frame.columnconfigure(0, weight=1)
-
+        output_scrollbar = ttk.Scrollbar(output_frame, orient=tk.HORIZONTAL, command = self.out_text.xview)                 #effort to make scrollbar over arguments
+        output_scrollbar.grid(row=2, column=0, sticky=(tk.W, tk.E))
+        self.out_text['xscrollcommand'] = output_scrollbar.set
     #########################################################
     #                      Binding                          #
     #########################################################
@@ -945,7 +958,7 @@ class WbRunner(tk.Frame):
         self.progress = ttk.Progressbar(
             progress_frame, orient="horizontal", variable=self.progress_var, length=200, maximum=100)
         self.progress.grid(row=0, column=1, sticky=tk.E)
-        progress_frame.grid(row=5, column=0, sticky=tk.E)
+        progress_frame.grid(row=4, column=0, columnspan = 2, sticky=tk.SE)
         
     #########################################################
     #                  Tool Selection                       #
@@ -989,6 +1002,21 @@ class WbRunner(tk.Frame):
         menubar.add_cascade(label="Help ", menu=helpmenu)
 
         self.master.config(menu=menubar)        
+
+    #Added "configure_argFrameScroll" -RACHEL
+    def configure_argFrameScroll(self, event):
+        # update the scrollbars to match the size of the inner frame
+        size = (self.argFrameScroll.winfo_reqwidth(), self.argFrameScroll.winfo_reqheight())
+        self.argCanvas.config(scrollregion="0 0 %s %s" % size)
+        if self.argFrameScroll.winfo_reqwidth() != self.argCanvas.winfo_width():
+            # update the canvas's width to fit the inner frame
+            self.argCanvas.config(width=self.argFrameScroll.winfo_reqwidth())
+
+    #Added "configure_argCanvas" -RACHEL
+    def configure_argCanvas(self, event):
+        if self.argFrameScroll.winfo_reqwidth() != self.argCanvas.winfo_width():
+            # update the inner frame's width to fill the canvas
+            self.argCanvas.itemconfigure(self.argFrameScroll_id, width=self.argCanvas.winfo_width())
 
     def help(self):
         self.print_to_output(wbt.version())
@@ -1110,8 +1138,6 @@ class WbRunner(tk.Frame):
             index = index + 1
         self.search_frame['text'] = "{} Tools Found".format(num_results)
 
-
-
     # Added 'get_descriptions' -RACHEL
     def get_descriptions(self):
         self.descriptionList = []
@@ -1146,7 +1172,7 @@ class WbRunner(tk.Frame):
     #part of original 'update_tool_help'
     def update_tool_help(self):
         self.out_text.delete('1.0', tk.END)
-        for widget in self.tool_args_frame.winfo_children():
+        for widget in self.argFrameScroll.winfo_children():
             widget.destroy()
 
         k = wbt.tool_help(self.tool_name)
@@ -1159,29 +1185,29 @@ class WbRunner(tk.Frame):
                 p, sort_keys=True, indent=2, separators=(',', ': '))
             pt = p['parameter_type']
             if 'ExistingFileOrFloat' in pt:
-                ff = FileOrFloat(json_str, self, self.tool_args_frame)
+                ff = FileOrFloat(json_str, self, self.argFrameScroll)
                 ff.grid(row=param_num, column=0, sticky=tk.NSEW)
                 param_num = param_num + 1
             elif ('ExistingFile' in pt or 'NewFile' in pt or 'Directory' in pt):
-                fs = FileSelector(json_str, self, self.tool_args_frame)
+                fs = FileSelector(json_str, self, self.argFrameScroll)
                 fs.grid(row=param_num, column=0, sticky=tk.NSEW)
                 param_num = param_num + 1
             elif 'FileList' in pt:
-                b = MultifileSelector(json_str, self, self.tool_args_frame)
+                b = MultifileSelector(json_str, self, self.argFrameScroll)
                 b.grid(row=param_num, column=0, sticky=tk.W)
                 param_num = param_num + 1
             elif 'Boolean' in pt:
-                b = BooleanInput(json_str, self.tool_args_frame)
+                b = BooleanInput(json_str, self.argFrameScroll)
                 b.grid(row=param_num, column=0, sticky=tk.W)
                 param_num = param_num + 1
             elif 'OptionList' in pt:
-                b = OptionsInput(json_str, self.tool_args_frame)
+                b = OptionsInput(json_str, self.argFrameScroll)
                 b.grid(row=param_num, column=0, sticky=tk.W)
                 param_num = param_num + 1
             elif ('Float' in pt or 'Integer' in pt or
                   'String' in pt or 'StringOrNumber' in pt or
                   'StringList' in pt or 'VectorAttributeField' in pt):
-                b = DataInput(json_str, self.tool_args_frame)
+                b = DataInput(json_str, self.argFrameScroll)
                 b.grid(row=param_num, column=0, sticky=tk.NSEW)
                 param_num = param_num + 1
             else:
@@ -1191,9 +1217,9 @@ class WbRunner(tk.Frame):
         self.update_args_box()
         self.out_text.see("%d.%d" % (1, 0))
 
-        argScroll = ttk.Scrollbar(self.tool_args_frame, orient=tk.VERTICAL)
-        argScroll.grid(row=0, rowspan = param_num, column=1, sticky=(tk.N, tk.S))
-  
+        # argScroll = ttk.Scrollbar(self.tool_args_frame, orient=tk.VERTICAL)
+        # self.argScroll.grid(row=0, rowspan = param_num, column=1, sticky=(tk.N, tk.S))
+
     def update_args_box(self):
         s = ""
         self.current_tool_lbl['text'] = "Current Tool: {}".format(
@@ -1256,7 +1282,7 @@ class WbRunner(tk.Frame):
         selected_item = -1
         for item in wbt.list_tools().keys():
             if item:
-                value = to_camelcase(item)
+                value = to_camelcase(item).replace("TIN", "Tin").replace("KS", "Ks").replace("FD", "Fd")
                 list.append(value)
                 if item == self.tool_name:
                     selected_item = len(list) - 1
@@ -1313,7 +1339,7 @@ class WbRunner(tk.Frame):
         count = 1
         for toolAndToolbox in self.tools_and_toolboxes.split('\n'):
             if toolAndToolbox.strip():
-                tool = toolAndToolbox.strip().split(':')[0].strip()
+                tool = toolAndToolbox.strip().split(':')[0].strip().replace("TIN", "Tin").replace("KS", "Ks").replace("FD", "Fd")
                 itemToolbox = toolAndToolbox.strip().split(':')[1].strip()
                 itemToolboxStripped = itemToolbox.rstrip()
                 index = 0
