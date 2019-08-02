@@ -16,7 +16,7 @@ from os import path
 # from __future__ import print_function
 # from enum import Enum
 import platform
-import re                                  #Added by Rachel for snake_to_camel
+import re    #Added by Rachel for snake_to_camel function
 from pathlib import Path
 import glob
 from sys import platform as _platform
@@ -71,7 +71,7 @@ class FileSelector(tk.Frame):
             self.value.set(default_value)
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.open_file_icon = tk.PhotoImage(file =  dir_path + '//resources//Images//open.png')
+        self.open_file_icon = tk.PhotoImage(file =  dir_path + '//resources//Images//open.png')     #Added by Rachel to replace file selector "..." button with open file icon
         
         self.open_button = ttk.Button(fs_frame, width=4, image = self.open_file_icon, command=self.select_file, padding = '0.02i')
         self.open_button.grid(row=0, column=1, sticky=tk.E)
@@ -770,186 +770,169 @@ class WbRunner(tk.Frame):
     #########################################################
     #              Overall/Top level Frame                  #
     #########################################################     
+        #define left-side frame (toplevel_frame) and right-side frame (overall_frame)
         toplevel_frame = ttk.Frame(self, padding='0.1i')
         overall_frame = ttk.Frame(self, padding='0.1i')
-
+        #set-up layout
         overall_frame.grid(row=0, column=1, sticky=tk.NSEW)
         toplevel_frame.grid(row=0, column=0, sticky=tk.NSEW)   
-        
     #########################################################
     #                  Calling basics                       #
     #########################################################
+        #Create all needed lists of tools and toolboxes
         self.toolbox_list = self.get_toolboxes()
         self.sort_toolboxes()
         self.tools_and_toolboxes = wbt.toolbox('')
-        self.sort_tools_by_toolbox()
-        
-        (self.tools_list, selected_item) = self.get_tools_list()              
-        self.tool_name = self.tools_list[selected_item]
-        
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.tool_icon = tk.PhotoImage(file = dir_path + '//resources//Images//tool.png')
-        self.open_toolbox_icon = tk.PhotoImage(file =  dir_path + '//resources//Images//opentools.png')
-        self.closed_toolbox_icon = tk.PhotoImage(file =  dir_path + '//resources//Images//closedToolbox.png')
+        self.sort_tools_by_toolbox()        
+        self.get_tools_list()              
+        # self.tool_name = self.tools_list[selected_item] #set default tool
+        #Icons to be used in tool treeview
+        self.tool_icon = tk.PhotoImage(file = self.script_dir + '//resources//Images//tool.png')  
+        self.open_toolbox_icon = tk.PhotoImage(file =  self.script_dir + '//resources//Images//opentools.png')
+        self.closed_toolbox_icon = tk.PhotoImage(file =  self.script_dir + '//resources//Images//closedToolbox.png')
     #########################################################
-    #                  Toolboxes Frame                      #
+    #                  Toolboxes Frame                      #FIXME: change width or make horizontally scrollable
     #########################################################
-        self.tools_frame = ttk.LabelFrame(toplevel_frame, text="{} Available Tools".format(
-            len(self.tools_list)), padding='0.1i')
-        
-        self.tool_tree = ttk.Treeview(self.tools_frame, height = 21)
-        index = 0
-        for toolbox in self.lower_toolboxes:
-            if toolbox.find('/') != (-1):      
-                self.tool_tree.insert(toolbox[:toolbox.find('/')], 0, text = "  " + toolbox[toolbox.find('/') + 1:], iid = toolbox[toolbox.find('/') + 1:], tags = 'toolbox', image = self.closed_toolbox_icon)
-                for tool in self.sorted_tools[index]:
-                    self.tool_tree.insert(toolbox[toolbox.find('/') + 1:], 'end', text = "  " + tool, tags = 'tool', iid = tool, image = self.tool_icon)       
-            else:
-                self.tool_tree.insert('', 'end', text = "  " + toolbox, iid = toolbox, tags = 'toolbox', image = self.closed_toolbox_icon)                         
-                for tool in self.sorted_tools[index]:
-                    self.tool_tree.insert(toolbox, 'end', text = "  " + tool, iid = tool, tags = 'tool', image = self.tool_icon) 
-            index = index + 1 
-
-
-        self.tool_tree.tag_bind('tool', "<<TreeviewSelect>>", self.tree_update_tool_help)
-        self.tool_tree.tag_bind('toolbox', "<<TreeviewSelect>>", self.update_toolbox_icon)
-
+        #define tools_frame and tool_tree
+        self.tools_frame = ttk.LabelFrame(toplevel_frame, text="{} Available Tools".format(len(self.tools_list)), padding='0.1i')   
+        self.tool_tree = ttk.Treeview(self.tools_frame, height = 21)    
+        #Set up layout
         self.tool_tree.grid(row=0, column=0, sticky=tk.NSEW)
-        self.tool_tree.columnconfigure(0, weight=10)
-        self.tool_tree.rowconfigure(0, weight=1)
-        s = ttk.Scrollbar(self.tools_frame, orient=tk.VERTICAL,
-                          command=self.tool_tree.yview)
-        s.grid(row=0, column=1, sticky=(tk.N, tk.S))
-        self.tool_tree['yscrollcommand'] = s.set
+        self.tool_tree.column("#0", width = 280)    #Set width so all tools are readable within the frame
         self.tools_frame.grid(row=0, column=0, sticky=tk.NSEW)
         self.tools_frame.columnconfigure(0, weight=10)
         self.tools_frame.columnconfigure(1, weight=1)
         self.tools_frame.rowconfigure(0, weight=10)
-
+        self.tools_frame.rowconfigure(1, weight=1)
+        #Add toolboxes and tools to treeview
+        index = 0
+        for toolbox in self.lower_toolboxes:
+            if toolbox.find('/') != (-1):    #toolboxes 
+                self.tool_tree.insert(toolbox[:toolbox.find('/')], 0, text = "  " + toolbox[toolbox.find('/') + 1:], iid = toolbox[toolbox.find('/') + 1:], tags = 'toolbox', image = self.closed_toolbox_icon)
+                for tool in self.sorted_tools[index]:    #add tools within toolbox
+                    self.tool_tree.insert(toolbox[toolbox.find('/') + 1:], 'end', text = "  " + tool, tags = 'tool', iid = tool, image = self.tool_icon)       
+            else:    #subtoolboxes
+                self.tool_tree.insert('', 'end', text = "  " + toolbox, iid = toolbox, tags = 'toolbox', image = self.closed_toolbox_icon)                         
+                for tool in self.sorted_tools[index]:  #add tools within subtoolbox
+                    self.tool_tree.insert(toolbox, 'end', text = "  " + tool, iid = tool, tags = 'tool', image = self.tool_icon) 
+            index = index + 1 
+        #bind tools in treeview to self.tree_update_tool_help function and toolboxes to self.update_toolbox_icon function
+        self.tool_tree.tag_bind('tool', "<<TreeviewSelect>>", self.tree_update_tool_help)   
+        self.tool_tree.tag_bind('toolbox', "<<TreeviewSelect>>", self.update_toolbox_icon)  
+        #Add vertical scrollbar to treeview frame
+        s = ttk.Scrollbar(self.tools_frame, orient=tk.VERTICAL,command=self.tool_tree.yview)    
+        s.grid(row=0, column=1, sticky=(tk.N, tk.S))
+        self.tool_tree['yscrollcommand'] = s.set
     #########################################################
     #                     Search Bar                        #
     #########################################################
-        self.search_list = []
-        self.search_frame = ttk.LabelFrame(toplevel_frame, padding='0.1i', text="{} Tools Found".format(len(self.search_list)))       
-
-        self.search_label = ttk.Label(self.search_frame, text = "Search: ")
-        self.search_label.grid(row = 0, column = 0, sticky=tk.NW)
-        
+        #create variables for search results and search input
+        self.search_list = []    
         self.search_text = tk.StringVar()
+        #Create the elements of the search frame
+        self.search_frame = ttk.LabelFrame(toplevel_frame, padding='0.1i', text="{} Tools Found".format(len(self.search_list)))         
+        self.search_label = ttk.Label(self.search_frame, text = "Search: ") 
         self.search_bar = ttk.Entry(self.search_frame, width = 30, textvariable = self.search_text)
-        self.search_bar.grid(row = 0, column = 1, sticky=tk.NE)
-        
         self.search_results_listbox = tk.Listbox(self.search_frame, height=11) 
-        self.search_results_listbox.grid(row = 1, column = 0, columnspan = 2, sticky=tk.NSEW, pady = 5)
-        self.search_results_listbox.bind("<<ListboxSelect>>", self.search_update_tool_help)
-
         self.search_scroll = ttk.Scrollbar(self.search_frame, orient=tk.VERTICAL, command=self.search_results_listbox.yview)
-        self.search_scroll.grid(row=1, column=2, sticky=(tk.N, tk.S))
         self.search_results_listbox['yscrollcommand'] = self.search_scroll.set
-        
+        #Add bindings
+        self.search_results_listbox.bind("<<ListboxSelect>>", self.search_update_tool_help)
         self.search_bar.bind('<Return>', self.update_search)
+        #Define layout of the frame
         self.search_frame.grid(row = 1, column = 0, sticky=tk.NSEW)
+        self.search_label.grid(row = 0, column = 0, sticky=tk.NW)
+        self.search_bar.grid(row = 0, column = 1, sticky=tk.NE) 
+        self.search_results_listbox.grid(row = 1, column = 0, columnspan = 2, sticky=tk.NSEW, pady = 5)
+        self.search_scroll.grid(row=1, column=2, sticky=(tk.N, tk.S))
+        #Configure rows and columns of the frame
         self.search_frame.columnconfigure(0, weight=1)
         self.search_frame.columnconfigure(1, weight=10)
         self.search_frame.columnconfigure(1, weight=1)
         self.search_frame.rowconfigure(0, weight=1)
         self.search_frame.rowconfigure(1, weight = 10)
-
     #########################################################
     #                 Current Tool Frame                    #
     #########################################################
-        current_tool_frame = ttk.Frame(overall_frame, padding='0.2i')
-        self.current_tool_lbl = ttk.Label(current_tool_frame, text="Current Tool: {}".format(
-            self.tool_name), justify=tk.LEFT)  # , font=("Helvetica", 12, "bold")
-        self.current_tool_lbl.grid(row=0, column=0, sticky=tk.W)
-        self.view_code_button = ttk.Button(
-            current_tool_frame, text="View Code", width=12, command=self.view_code)
+        #Create the elements of the current tool frame
+        self.current_tool_frame = ttk.Frame(overall_frame, padding='0.2i')
+        self.current_tool_lbl = ttk.Label(self.current_tool_frame, text="Current Tool: {}".format(self.tool_name), justify=tk.LEFT)  # , font=("Helvetica", 12, "bold") 
+        self.view_code_button = ttk.Button(self.current_tool_frame, text="View Code", width=12, command=self.view_code)
+        #Define layout of the frame
         self.view_code_button.grid(row=0, column=1, sticky=tk.E)
-        current_tool_frame.grid(row=0, column=0, columnspan = 2, sticky=tk.NSEW)
-        current_tool_frame.columnconfigure(0, weight=1)
-        current_tool_frame.columnconfigure(1, weight=1)
-
-    ################################################################################
-    #    Args Frame (https://gist.github.com/bakineugene/76c8f9bcec5b390e45df)     #
-    ################################################################################
-        # create a canvas object and a vertical scrollbar for scrolling it
-        # self.argFrame = ttk.Frame(overall_frame, padding='0.0i')
-        self.argScroll = ttk.Scrollbar(overall_frame, orient='vertical')
-        self.argScroll.grid(row = 1, column = 1, sticky = (tk.NS, tk.E))
-        self.argCanvas = tk.Canvas(overall_frame, bd=0, highlightthickness=0, yscrollcommand=self.argScroll.set)
-        self.argCanvas.grid(row = 1, column = 0, sticky = tk.NSEW)
-        self.argScroll.config(command=self.argCanvas.yview)
-
+        self.current_tool_lbl.grid(row=0, column=0, sticky=tk.W)
+        self.current_tool_frame.grid(row=0, column=0, columnspan = 2, sticky=tk.NSEW)
+        #Configure rows and columns of the frame
+        self.current_tool_frame.columnconfigure(0, weight=1)
+        self.current_tool_frame.columnconfigure(1, weight=1)
+    #########################################################
+    #                      Args Frame                       #
+    #########################################################
+        #Create the elements of the tool arguements frame
+        self.arg_scroll = ttk.Scrollbar(overall_frame, orient='vertical')
+        self.arg_canvas = tk.Canvas(overall_frame, bd=0, highlightthickness=0, yscrollcommand=self.arg_scroll.set)
+        self.arg_scroll.config(command=self.arg_canvas.yview)    #self.arg_scroll scrolls over self.arg_canvas
+        self.arg_scroll_frame = ttk.Frame(self.arg_canvas)    # create a frame inside the self.arg_canvas which will be scrolled with it
+        self.arg_scroll_frame_id = self.arg_canvas.create_window(0, 0, window=self.arg_scroll_frame, anchor="nw")
+        #Define layout of the frame
+        self.arg_scroll.grid(row = 1, column = 1, sticky = (tk.NS, tk.E))
+        self.arg_canvas.grid(row = 1, column = 0, sticky = tk.NSEW)
         # reset the view
-        self.argCanvas.xview_moveto(0)
-        self.argCanvas.yview_moveto(0)
-
-        # create a frame inside the self.argCanvas which will be scrolled with it
-        self.argFrameScroll = ttk.Frame(self.argCanvas)
-        self.argFrameScroll_id = self.argCanvas.create_window(0, 0, window=self.argFrameScroll, anchor="nw")
-
-        self.argFrameScroll.bind('<Configure>', self.configure_argFrameScroll)
-        self.argCanvas.bind('<Configure>', self.configure_argCanvas)
+        self.arg_canvas.xview_moveto(0)
+        self.arg_canvas.yview_moveto(0)
+        #Add bindings
+        self.arg_scroll_frame.bind('<Configure>', self.configure_arg_scroll_frame)
+        self.arg_canvas.bind('<Configure>', self.configure_arg_canvas)
     #########################################################
     #                   Buttons Frame                       #
     #########################################################
-        buttonsFrame = ttk.Frame(overall_frame, padding='0.2i')
-        
-        self.run_button = ttk.Button(
-            buttonsFrame, text="Run", width=8, command=self.run_tool)
+        #Create the elements of the buttons frame
+        self.buttons_frame = ttk.Frame(overall_frame, padding='0.2i')
+        self.run_button = ttk.Button(self.buttons_frame, text="Run", width=8, command=self.run_tool)
+        self.quit_button = ttk.Button(self.buttons_frame, text="Cancel", width=8, command=self.cancel_operation)
+        self.help_button = ttk.Button(self.buttons_frame, text="Help", width=8, command=self.tool_help_button)
+        #Define layout of the frame
         self.run_button.grid(row=0, column=0)
-        
-        self.quitButton = ttk.Button(
-            buttonsFrame, text="Cancel", width=8, command=self.cancel_operation)
-        self.quitButton.grid(row=0, column=1)
-       
-        self.helpButton = ttk.Button(
-            buttonsFrame, text="Help", width=8, command=self.tool_help)   
-        self.helpButton.grid(row = 0, column = 2)
-
-        buttonsFrame.grid(row=2, column=0, columnspan = 2, sticky=tk.E)
-        
+        self.quit_button.grid(row=0, column=1)
+        self.help_button.grid(row = 0, column = 2)
+        self.buttons_frame.grid(row=2, column=0, columnspan = 2, sticky=tk.E)
     #########################################################
     #                  Output Frame                      #
     #########################################################                
-        # output_frame = ttk.Frame(overall_frame, padding='0.2i')
+        #Create the elements of the output frame
         output_frame = ttk.Frame(overall_frame)
         outlabel = ttk.Label(output_frame, text="Output:", justify=tk.LEFT)
-        outlabel.grid(row=0, column=0, sticky=tk.NW)
-        k = wbt.tool_help(self.tool_name)
-        self.out_text = ScrolledText(
-            output_frame, width=63, height=15, wrap=tk.NONE, padx=7, pady=7, exportselection = 0)
-        
-        self.out_text.insert(tk.END, k)
-        self.out_text.grid(row=1, column=0, sticky=tk.NSEW)
-        self.out_text.columnconfigure(0, weight=1)
-        output_frame.grid(row=3, column=0, columnspan = 2, sticky=(tk.NS, tk.E))
-        output_frame.columnconfigure(0, weight=1)
-        output_scrollbar = ttk.Scrollbar(output_frame, orient=tk.HORIZONTAL, command = self.out_text.xview)                 #effort to make scrollbar over arguments
-        output_scrollbar.grid(row=2, column=0, sticky=(tk.W, tk.E))
+        self.out_text = ScrolledText(output_frame, width=63, height=15, wrap=tk.NONE, padx=7, pady=7, exportselection = 0)
+        output_scrollbar = ttk.Scrollbar(output_frame, orient=tk.HORIZONTAL, command = self.out_text.xview)
         self.out_text['xscrollcommand'] = output_scrollbar.set
-    #########################################################
-    #                      Binding                          #
-    #########################################################
+        #Retreive and insert the text for the current tool
+        k = wbt.tool_help(self.tool_name)   
+        self.out_text.insert(tk.END, k)
+        #Define layout of the frame
+        outlabel.grid(row=0, column=0, sticky=tk.NW)
+        self.out_text.grid(row=1, column=0, sticky=tk.NSEW)
+        output_frame.grid(row=3, column=0, columnspan = 2, sticky=(tk.NS, tk.E))
+        output_scrollbar.grid(row=2, column=0, sticky=(tk.W, tk.E))
+        #Configure rows and columns of the frame
+        self.out_text.columnconfigure(0, weight=1)
+        output_frame.columnconfigure(0, weight=1)
         # Add the binding
         if _platform == "darwin":
             self.out_text.bind("<Command-Key-a>", self.select_all)
         else:
             self.out_text.bind("<Control-Key-a>", self.select_all)
-
     #########################################################
     #                  Progress Frame                       #
     #########################################################        
+        #Create the elements of the progress frame
         progress_frame = ttk.Frame(overall_frame, padding='0.2i')
-        self.progress_label = ttk.Label(
-            progress_frame, text="Progress:", justify=tk.LEFT)
-        self.progress_label.grid(row=0, column=0, sticky=tk.E, padx=5)
+        self.progress_label = ttk.Label(progress_frame, text="Progress:", justify=tk.LEFT)
         self.progress_var = tk.DoubleVar()
-        self.progress = ttk.Progressbar(
-            progress_frame, orient="horizontal", variable=self.progress_var, length=200, maximum=100)
+        self.progress = ttk.Progressbar(progress_frame, orient="horizontal", variable=self.progress_var, length=200, maximum=100)
+        #Define layout of the frame
+        self.progress_label.grid(row=0, column=0, sticky=tk.E, padx=5)
         self.progress.grid(row=0, column=1, sticky=tk.E)
         progress_frame.grid(row=4, column=0, columnspan = 2, sticky=tk.SE)
-        
     #########################################################
     #                  Tool Selection                       #
     #########################################################        
@@ -957,57 +940,246 @@ class WbRunner(tk.Frame):
         self.tool_tree.focus(self.tool_name)
         self.tool_tree.selection_set(self.tool_name)
         self.tool_tree.event_generate("<<TreeviewSelect>>")
-        
     #########################################################
     #                       Menus                           #
     #########################################################        
         menubar = tk.Menu(self)
+
         filemenu = tk.Menu(menubar, tearoff=0)
-        filemenu.add_command(label="Set Working Directory",
-                             command=self.set_directory)
-        filemenu.add_command(
-            label="Locate WhiteboxTools exe", command=self.select_exe)
+        filemenu.add_command(label="Set Working Directory", command=self.set_directory)
+        filemenu.add_command(label="Locate WhiteboxTools exe", command=self.select_exe)
         filemenu.add_command(label="Refresh Tools", command=self.refresh_tools)
         filemenu.add_separator()
         filemenu.add_command(label="Exit", command=self.quit)
         menubar.add_cascade(label="File", menu=filemenu)
 
         editmenu = tk.Menu(menubar, tearoff=0)
-        editmenu.add_command(
-            label="Cut", command=lambda: self.focus_get().event_generate("<<Cut>>"))
-        editmenu.add_command(
-            label="Copy", command=lambda: self.focus_get().event_generate("<<Copy>>"))
-        editmenu.add_command(
-            label="Paste", command=lambda: self.focus_get().event_generate("<<Paste>>"))
-
+        editmenu.add_command(label="Cut", command=lambda: self.focus_get().event_generate("<<Cut>>"))
+        editmenu.add_command(label="Copy", command=lambda: self.focus_get().event_generate("<<Copy>>"))
+        editmenu.add_command(label="Paste", command=lambda: self.focus_get().event_generate("<<Paste>>"))
         menubar.add_cascade(label="Edit ", menu=editmenu)
 
         helpmenu = tk.Menu(menubar, tearoff=0)
-        helpmenu.add_command(
-            label="About", command=self.help)
-
-        helpmenu.add_command(
-            label="License", command=self.license)
-
+        helpmenu.add_command(label="About", command=self.help)
+        helpmenu.add_command(label="License", command=self.license)
         menubar.add_cascade(label="Help ", menu=helpmenu)
 
         self.master.config(menu=menubar)        
+    #########################################################
+    #        Functions (added/edited by Rachel)             #
+    #########################################################
+    def get_toolboxes(self):
+        toolboxes = set()
+        for item in wbt.toolbox().splitlines():  # run wbt.toolbox with no tool specified--returns all
+            if item:
+                tb = item.split(":")[1].strip()
+                toolboxes.add(tb)
+        return sorted(toolboxes)
 
-    #Added "configure_argFrameScroll" -RACHEL
-    def configure_argFrameScroll(self, event):
+    def sort_toolboxes(self):
+        self.upper_toolboxes = []
+        self.lower_toolboxes = []
+        for toolbox in self.toolbox_list:
+            if toolbox.find('/') == (-1):    #Does not contain a subtoolbox, i.e. does not contain '/'
+                self.upper_toolboxes.append(toolbox)    #add to both upper toolbox list and lower toolbox list
+                self.lower_toolboxes.append(toolbox)
+            else:    #Contains a subtoolbox
+                self.lower_toolboxes.append(toolbox)    #add to only the lower toolbox list  
+        self.upper_toolboxes = sorted(self.upper_toolboxes)    #sort both lists alphabetically
+        self.lower_toolboxes = sorted(self.lower_toolboxes)
+
+    def sort_tools_by_toolbox(self): 
+        self.sorted_tools = [[] for i in range(len(self.lower_toolboxes))]    #One list for each lower toolbox
+        count = 1
+        for toolAndToolbox in self.tools_and_toolboxes.split('\n'):
+            if toolAndToolbox.strip():
+                tool = toolAndToolbox.strip().split(':')[0].strip().replace("TIN", "Tin").replace("KS", "Ks").replace("FD", "Fd")    #current tool
+                itemToolbox = toolAndToolbox.strip().split(':')[1].strip()    #current toolbox
+                index = 0
+                for toolbox in self.lower_toolboxes:    #find which toolbox the current tool belongs to
+                    if toolbox == itemToolbox:
+                        self.sorted_tools[index].append(tool)    #add current tool to list at appropriate index
+                        break
+                    index = index + 1
+                count = count + 1
+
+    def get_tools_list(self):
+        self.tools_list = []
+        selected_item = -1
+        for item in wbt.list_tools().keys():
+            if item:
+                value = to_camelcase(item).replace("TIN", "Tin").replace("KS", "Ks").replace("FD", "Fd")    #format tool name
+                self.tools_list.append(value)    #add tool to list
+                if item == self.tool_name:    #update selected_item it tool found
+                    selected_item = len(self.tools_list) - 1
+        if selected_item == -1:    #set self.tool_name as default tool
+            selected_item = 0
+            self.tool_name = self.tools_list[0]
+
+    def tree_update_tool_help(self, event):    # read selection when tool selected from treeview then call self.update_tool_help
+        curItem = self.tool_tree.focus()
+        self.tool_name = self.tool_tree.item(curItem).get('text').replace("  ", "")
+        self.update_tool_help()
+
+    def search_update_tool_help(self, event):    # read selection when tool selected from search results then call self.update_tool_help
+        selection = self.search_results_listbox.curselection()
+        self.tool_name = self.search_results_listbox.get(selection[0])
+        self.update_tool_help()
+  
+    def update_tool_help(self):
+        self.out_text.delete('1.0', tk.END)
+        for widget in self.arg_scroll_frame.winfo_children():
+            widget.destroy()
+
+        k = wbt.tool_help(self.tool_name)
+        self.print_to_output(k)
+
+        j = json.loads(wbt.tool_parameters(self.tool_name))
+        param_num = 0
+        for p in j['parameters']:
+            json_str = json.dumps(
+                p, sort_keys=True, indent=2, separators=(',', ': '))
+            pt = p['parameter_type']
+            if 'ExistingFileOrFloat' in pt:
+                ff = FileOrFloat(json_str, self, self.arg_scroll_frame)
+                ff.grid(row=param_num, column=0, sticky=tk.NSEW)
+                param_num = param_num + 1
+            elif ('ExistingFile' in pt or 'NewFile' in pt or 'Directory' in pt):
+                fs = FileSelector(json_str, self, self.arg_scroll_frame)
+                fs.grid(row=param_num, column=0, sticky=tk.NSEW)
+                param_num = param_num + 1
+            elif 'FileList' in pt:
+                b = MultifileSelector(json_str, self, self.arg_scroll_frame)
+                b.grid(row=param_num, column=0, sticky=tk.W)
+                param_num = param_num + 1
+            elif 'Boolean' in pt:
+                b = BooleanInput(json_str, self.arg_scroll_frame)
+                b.grid(row=param_num, column=0, sticky=tk.W)
+                param_num = param_num + 1
+            elif 'OptionList' in pt:
+                b = OptionsInput(json_str, self.arg_scroll_frame)
+                b.grid(row=param_num, column=0, sticky=tk.W)
+                param_num = param_num + 1
+            elif ('Float' in pt or 'Integer' in pt or
+                  'String' in pt or 'StringOrNumber' in pt or
+                  'StringList' in pt or 'VectorAttributeField' in pt):
+                b = DataInput(json_str, self.arg_scroll_frame)
+                b.grid(row=param_num, column=0, sticky=tk.NSEW)
+                param_num = param_num + 1
+            else:
+                messagebox.showinfo(
+                    "Error", "Unsupported parameter type: {}.".format(pt))
+        self.update_args_box()
+        self.out_text.see("%d.%d" % (1, 0))
+
+    def update_toolbox_icon(self, event):
+        curItem = self.tool_tree.focus()
+        dict = self.tool_tree.item(curItem)    #retreive the toolbox name
+        self.toolbox_name = dict.get('text'). replace("  ", "")    #delete the space between the icon and text
+        self.toolbox_open = dict.get('open')    #retreive whether the toolbox is open or not
+        if self.toolbox_open == True:    #set image accordingly
+            self.tool_tree.item(self.toolbox_name, image = self.open_toolbox_icon)
+        else:
+            self.tool_tree.item(self.toolbox_name, image = self.closed_toolbox_icon)
+    
+    def update_search(self, event):
+        self.search_list = [] 
+        self.search_string = self.search_text.get().lower()
+        self.search_results_listbox.delete(0, 'end') #empty the search results
+        num_results = 0
+        for tool in self.tools_list:  #search tool names
+            toolLower = tool.lower()
+            if toolLower.find(self.search_string) != (-1): #search string found within tool name
+                num_results = num_results + 1
+                self.search_results_listbox.insert(num_results, tool) #tool added to listbox and to search results string
+                self.search_list.append(tool)
+        index = 0
+        self.get_descriptions()
+        for description in self.descriptionList: #search tool descriptions
+            descriptionLower = description.lower()
+            if descriptionLower.find(self.search_string) != (-1): #search string found within tool description
+                found = 0
+                for item in self.search_list: # check if this tool is already in the listbox
+                    if self.tools_list[index] == item:
+                        found = 1
+                if found == 0:  # add to listbox
+                    num_results = num_results + 1
+                    self.search_results_listbox.insert(num_results, self.tools_list[index])    #tool added to listbox and to search results string
+            index = index + 1
+        self.search_frame['text'] = "{} Tools Found".format(num_results) #update search label
+
+    def get_descriptions(self):
+        self.descriptionList = []
+        tools = wbt.list_tools()
+        toolsItems = tools.items()
+        for t in toolsItems:
+            self.descriptionList.append(t[1])    #second entry in tool dictionary is the description
+     
+    def configure_arg_scroll_frame(self, event):
         # update the scrollbars to match the size of the inner frame
-        size = (self.argFrameScroll.winfo_reqwidth(), self.argFrameScroll.winfo_reqheight())
-        self.argCanvas.config(scrollregion="0 0 %s %s" % size)
-        if self.argFrameScroll.winfo_reqwidth() != self.argCanvas.winfo_width():
+        size = (self.arg_scroll_frame.winfo_reqwidth(), self.arg_scroll_frame.winfo_reqheight())
+        self.arg_canvas.config(scrollregion="0 0 %s %s" % size)
+        if self.arg_scroll_frame.winfo_reqwidth() != self.arg_canvas.winfo_width():
             # update the canvas's width to fit the inner frame
-            self.argCanvas.config(width=self.argFrameScroll.winfo_reqwidth())
+            self.arg_canvas.config(width=self.arg_scroll_frame.winfo_reqwidth())
 
-    #Added "configure_argCanvas" -RACHEL
-    def configure_argCanvas(self, event):
-        if self.argFrameScroll.winfo_reqwidth() != self.argCanvas.winfo_width():
+    def configure_arg_canvas(self, event):
+        if self.arg_scroll_frame.winfo_reqwidth() != self.arg_canvas.winfo_width():
             # update the inner frame's width to fill the canvas
-            self.argCanvas.itemconfigure(self.argFrameScroll_id, width=self.argCanvas.winfo_width())
+            self.arg_canvas.itemconfigure(self.arg_scroll_frame_id, width=self.arg_canvas.winfo_width())
+    
+    def tool_help_button(self):
+        index = 0
+        found = False
+        #find toolbox corresponding to the current tool
+        for toolbox in self.lower_toolboxes:
+            for tool in self.sorted_tools[index]:
+                if tool == self.tool_name:
+                    self.toolbox_name = toolbox
+                    found = True
+                    break
+            if found:
+                break
+            index = index + 1
+        #change LiDAR to Lidar
+        if index == 10:
+            self.toolbox_name = to_camelcase(self.toolbox_name)
+        #format subtoolboxes as for URLs
+        self.toolbox_name = self.camel_to_snake(self.toolbox_name).replace('/', '').replace(' ', '') 
+        #open the user manual section for the current tool
+        webbrowser.open_new_tab("https://jblindsay.github.io/wbt_book/available_tools/" + self.toolbox_name + ".html#" + self.tool_name)    
+    
+    def camel_to_snake(self, s):    # taken from tools_info.py
+        _underscorer1 = re.compile(r'(.)([A-Z][a-z]+)')
+        _underscorer2 = re.compile('([a-z0-9])([A-Z])')
+        subbed = _underscorer1.sub(r'\1_\2', s)
+        return _underscorer2.sub(r'\1_\2', subbed).lower()
 
+    def refresh_tools(self):
+        #refresh lists
+        self.tools_and_toolboxes = wbt.toolbox('')
+        self.sort_tools_by_toolbox()
+        self.get_tools_list()
+        #clear self.tool_tree
+        self.tool_tree.delete(*self.tool_tree.get_children())
+        #Add toolboxes and tools to treeview
+        index = 0
+        for toolbox in self.lower_toolboxes:
+            if toolbox.find('/') != (-1):    #toolboxes 
+                self.tool_tree.insert(toolbox[:toolbox.find('/')], 0, text = "  " + toolbox[toolbox.find('/') + 1:], iid = toolbox[toolbox.find('/') + 1:], tags = 'toolbox', image = self.closed_toolbox_icon)
+                for tool in self.sorted_tools[index]:    #add tools within toolbox
+                    self.tool_tree.insert(toolbox[toolbox.find('/') + 1:], 'end', text = "  " + tool, tags = 'tool', iid = tool, image = self.tool_icon)       
+            else:    #subtoolboxes
+                self.tool_tree.insert('', 'end', text = "  " + toolbox, iid = toolbox, tags = 'toolbox', image = self.closed_toolbox_icon)                         
+                for tool in self.sorted_tools[index]:  #add tools within subtoolbox
+                    self.tool_tree.insert(toolbox, 'end', text = "  " + tool, iid = tool, tags = 'tool', image = self.tool_icon) 
+            index = index + 1 
+        #Update label
+        self.tools_frame["text"] = "{} Available Tools".format(len(self.tools_list))
+
+    #########################################################
+    #               Functions (original)                    #
+    #########################################################
     def help(self):
         self.print_to_output(wbt.version())
 
@@ -1039,7 +1211,7 @@ class WbRunner(tk.Frame):
         # args = shlex.split(self.args_value.get())
 
         args = []
-        for widget in self.tool_args_frame.winfo_children():
+        for widget in self.arg_scroll_frame.winfo_children():
             v = widget.get_value()
             if v:
                 args.append(v)
@@ -1074,142 +1246,9 @@ class WbRunner(tk.Frame):
         self.print_line_to_output("Cancelling operation...")
         self.progress.update_idletasks()
 
-    # taken from tools_info_john.py
-    def camel_to_snake(self, s):
-        _underscorer1 = re.compile(r'(.)([A-Z][a-z]+)')
-        _underscorer2 = re.compile('([a-z0-9])([A-Z])')
-        subbed = _underscorer1.sub(r'\1_\2', s)
-        return _underscorer2.sub(r'\1_\2', subbed).lower()
-
-    def tool_help(self):
-        index = 0
-        found = False
-        for toolbox in self.lower_toolboxes:
-            for tool in self.sorted_tools[index]:
-                if tool == self.tool_name:
-                    self.toolbox_name = toolbox
-                    found = True
-                    break
-            if found:
-                break
-            index = index + 1
-        if index == 10:
-            self.toolbox_name = to_camelcase(self.toolbox_name)
-        self.toolbox_name = self.camel_to_snake(self.toolbox_name).replace('/', '').replace(' ', '') 
-        webbrowser.open_new_tab("https://jblindsay.github.io/wbt_book/available_tools/" + self.toolbox_name + ".html#" + self.tool_name)
-    
     def view_code(self):
         webbrowser.open_new_tab(wbt.view_code(self.tool_name).strip())
     
-    # Added 'update_search' -RACHEL
-    def update_search(self, event):
-        self.search_list = []
-        self.search_string = self.search_text.get().lower()
-        self.search_results_listbox.delete(0, 'end')
-        num_results = 0
-        for tool in self.tools_list:                                     #search tool names
-            toolLower = tool.lower()
-            if toolLower.find(self.search_string) != (-1):
-                num_results = num_results + 1
-                self.search_results_listbox.insert(num_results, tool)
-                self.search_list.append(tool)
-        index = 0
-        self.get_descriptions()
-        for description in self.descriptionList:                        #search tool descriptions
-            descriptionLower = description.lower()
-            if descriptionLower.find(self.search_string) != (-1):
-                found = 0
-                for item in self.search_list: # check if this tool is already in the listbox
-                    if self.tools_list[index] == item:
-                        found = 1
-                if found == 0:  # add to listbox
-                    num_results = num_results + 1
-                    self.search_results_listbox.insert(num_results, self.tools_list[index])
-            index = index + 1
-        self.search_frame['text'] = "{} Tools Found".format(num_results)
-
-    # Added 'get_descriptions' -RACHEL
-    def get_descriptions(self):
-        self.descriptionList = []
-        tools = wbt.list_tools()
-        toolsItems = tools.items()
-        for t in toolsItems:
-            self.descriptionList.append(t[1])
-    
-    # Added 'update_toolbox_icon' -RACHEL
-    def update_toolbox_icon(self, event):
-        curItem = self.tool_tree.focus()
-        dict = self.tool_tree.item(curItem)
-        self.toolbox_name = dict.get('text'). replace("  ", "")
-        self.toolbox_open = dict.get('open')
-        if self.toolbox_open == True:
-            self.tool_tree.item(self.toolbox_name, image = self.open_toolbox_icon)
-        else:
-            self.tool_tree.item(self.toolbox_name, image = self.closed_toolbox_icon)
-     
-    # Added 'search_update_tool_help' -RACHEL
-    def search_update_tool_help(self, event):
-        selection = self.search_results_listbox.curselection()
-        self.tool_name = self.search_results_listbox.get(selection[0])
-        self.update_tool_help()
-  
-    # Added 'tree_update_tool_help' -RACHEL
-    def tree_update_tool_help(self, event):
-        curItem = self.tool_tree.focus()
-        self.tool_name = self.tool_tree.item(curItem).get('text').replace("  ", "")
-        self.update_tool_help()
-
-    #part of original 'update_tool_help'
-    def update_tool_help(self):
-        self.out_text.delete('1.0', tk.END)
-        for widget in self.argFrameScroll.winfo_children():
-            widget.destroy()
-
-        k = wbt.tool_help(self.tool_name)
-        self.print_to_output(k)
-
-        j = json.loads(wbt.tool_parameters(self.tool_name))
-        param_num = 0
-        for p in j['parameters']:
-            json_str = json.dumps(
-                p, sort_keys=True, indent=2, separators=(',', ': '))
-            pt = p['parameter_type']
-            if 'ExistingFileOrFloat' in pt:
-                ff = FileOrFloat(json_str, self, self.argFrameScroll)
-                ff.grid(row=param_num, column=0, sticky=tk.NSEW)
-                param_num = param_num + 1
-            elif ('ExistingFile' in pt or 'NewFile' in pt or 'Directory' in pt):
-                fs = FileSelector(json_str, self, self.argFrameScroll)
-                fs.grid(row=param_num, column=0, sticky=tk.NSEW)
-                param_num = param_num + 1
-            elif 'FileList' in pt:
-                b = MultifileSelector(json_str, self, self.argFrameScroll)
-                b.grid(row=param_num, column=0, sticky=tk.W)
-                param_num = param_num + 1
-            elif 'Boolean' in pt:
-                b = BooleanInput(json_str, self.argFrameScroll)
-                b.grid(row=param_num, column=0, sticky=tk.W)
-                param_num = param_num + 1
-            elif 'OptionList' in pt:
-                b = OptionsInput(json_str, self.argFrameScroll)
-                b.grid(row=param_num, column=0, sticky=tk.W)
-                param_num = param_num + 1
-            elif ('Float' in pt or 'Integer' in pt or
-                  'String' in pt or 'StringOrNumber' in pt or
-                  'StringList' in pt or 'VectorAttributeField' in pt):
-                b = DataInput(json_str, self.argFrameScroll)
-                b.grid(row=param_num, column=0, sticky=tk.NSEW)
-                param_num = param_num + 1
-            else:
-                messagebox.showinfo(
-                    "Error", "Unsupported parameter type: {}.".format(pt))
-
-        self.update_args_box()
-        self.out_text.see("%d.%d" % (1, 0))
-
-        # argScroll = ttk.Scrollbar(self.tool_args_frame, orient=tk.VERTICAL)
-        # self.argScroll.grid(row=0, rowspan = param_num, column=1, sticky=(tk.N, tk.S))
-
     def update_args_box(self):
         s = ""
         self.current_tool_lbl['text'] = "Current Tool: {}".format(
@@ -1232,13 +1271,6 @@ class WbRunner(tk.Frame):
                         s = s + value + "={} "
 
         # self.args_value.set(s.strip())
-
-    def clear_args_box(self):
-        self.args_value.set("")
-
-    def args_select_all(self, event):
-        self.args_text.select_range(0, tk.END)
-        return 'break'
 
     def custom_callback(self, value):
         ''' A custom callback for dealing with tool output.
@@ -1266,79 +1298,6 @@ class WbRunner(tk.Frame):
         self.out_text.mark_set(tk.INSERT, "1.0")
         self.out_text.see(tk.INSERT)
         return 'break'
-
-    def get_tools_list(self):
-        list = []
-        selected_item = -1
-        for item in wbt.list_tools().keys():
-            if item:
-                value = to_camelcase(item).replace("TIN", "Tin").replace("KS", "Ks").replace("FD", "Fd")
-                list.append(value)
-                if item == self.tool_name:
-                    selected_item = len(list) - 1
-        if selected_item == -1:
-            selected_item = 0
-            self.tool_name = list[0]
-
-        return (list, selected_item)
-
-    def get_toolboxes(self):
-        toolboxes = set()
-        for item in wbt.toolbox().splitlines():  # run wbt.toolbox with no tool specified--returns all
-            if item:
-                tb = item.split(":")[1].strip()
-                toolboxes.add(tb)
-
-        # for v in sorted(toolboxes):
-        #     # print(v)
-        #     self.print_line_to_output(v)
-        return sorted(toolboxes)
-
-    def refresh_tools(self):
-        (self.tools_list, selected_item) = self.get_tools_list()
-        self.tool_tree.delete(0, len(self.tools_list))
-        for item in sorted(self.tools_list):
-            self.tool_tree.insert(len(self.tools_list), item)
-
-        self.tools_frame["text"] = "{} Available Tools".format(
-            len(self.tools_list))
-    
-    # Added 'sort_toolboxes' -RACHEL
-    def sort_toolboxes(self):
-        self.toolboxes = self.get_toolboxes()
-        self.upper_toolboxes = []
-        self.lower_toolboxes = []
-        for toolbox in self.toolboxes:
-            if toolbox.find('/') == (-1):
-                toolboxStripped = toolbox.rstrip()
-                self.upper_toolboxes.append(toolboxStripped)
-                self.lower_toolboxes.append(toolboxStripped)
-            else:
-                first = toolbox[:toolbox.find('/')]
-                second = toolbox[toolbox.find('/') + 1:]
-                firstStripped = first.rstrip()
-                secondStripped = second.rstrip()
-                toolbox = firstStripped + "/" + secondStripped
-                self.lower_toolboxes.append(toolbox)  
-        self.upper_toolboxes = sorted(self.upper_toolboxes)
-        self.lower_toolboxes = sorted(self.lower_toolboxes)
-
-    # Added 'sort_tools_by_toolbox' -RACHEL
-    def sort_tools_by_toolbox(self): 
-        self.sorted_tools = [[] for i in range(len(self.lower_toolboxes))]
-        count = 1
-        for toolAndToolbox in self.tools_and_toolboxes.split('\n'):
-            if toolAndToolbox.strip():
-                tool = toolAndToolbox.strip().split(':')[0].strip().replace("TIN", "Tin").replace("KS", "Ks").replace("FD", "Fd")
-                itemToolbox = toolAndToolbox.strip().split(':')[1].strip()
-                itemToolboxStripped = itemToolbox.rstrip()
-                index = 0
-                for toolbox in self.lower_toolboxes:
-                    if toolbox == itemToolboxStripped:
-                        self.sorted_tools[index].append(tool)
-                        break
-                    index = index + 1
-                count = count + 1
 
 class JsonPayload(object):
     def __init__(self, j):
