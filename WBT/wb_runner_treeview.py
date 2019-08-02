@@ -784,8 +784,7 @@ class WbRunner(tk.Frame):
         self.sort_toolboxes()
         self.tools_and_toolboxes = wbt.toolbox('')
         self.sort_tools_by_toolbox()        
-        self.get_tools_list()              
-        # self.tool_name = self.tools_list[selected_item] #set default tool
+        self.get_tools_list()  
         #Icons to be used in tool treeview
         self.tool_icon = tk.PhotoImage(file = self.script_dir + '//resources//Images//tool.png')  
         self.open_toolbox_icon = tk.PhotoImage(file =  self.script_dir + '//resources//Images//opentools.png')
